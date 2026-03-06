@@ -1,40 +1,54 @@
 ---
 name: jetstream-deployment
-description: Use this skill when users ask about NATS JetStream including streams, consumers, event streaming, worker queues, or troubleshooting JetStream message delivery.
+description: Use this skill when users ask about deploying NATS JetStream, configuring nats-server, Kubernetes NATS Helm charts, Docker Compose setups, clustering, multi-region gateways, leaf nodes, TLS, authentication, authorization, or infrastructure sizing for NATS.
 ---
 
-# Jetstream Deployment
+# JetStream Deployment
 
-This skill provides guidance for **Deploying and configuring NATS JetStream clusters including Kubernetes, clustering, and multi-region setups.**.
+Deploy and configure NATS JetStream clusters including server configuration, Kubernetes, Docker, clustering, security, and multi-region setups.
 
 ## When to Use
 
 Activate this skill when users ask about:
 
-- NATS JetStream streams
-- consumer configuration
-- event streaming architectures
-- worker queues
-- JetStream troubleshooting
-- JetStream deployment
+- NATS server configuration (nats-server.conf)
+- JetStream cluster setup and topology
+- Kubernetes deployment (Helm charts, StatefulSets, operators)
+- Docker and Docker Compose setups
+- Multi-region / super-cluster with gateways
+- Leaf node configuration
+- TLS and mTLS setup
+- Authentication (tokens, NKeys, JWT/accounts)
+- Authorization and subject permissions
+- Infrastructure sizing (CPU, memory, disk)
+- High availability and fault tolerance
+
+Do NOT activate for:
+- Stream/consumer design or code examples (use jetstream-architecture)
+- Troubleshooting, monitoring, or performance tuning (use jetstream-operations)
 
 ## Workflow
 
-Step 1: Identify the messaging pattern (event streaming, queue, RPC).
+Step 1: Determine deployment target — Kubernetes, Docker, bare metal, or cloud managed.
 
-Step 2: Determine appropriate JetStream subjects.
+Step 2: Size the cluster — number of nodes, CPU, memory, disk based on throughput and retention needs.
 
-Step 3: Configure a stream.
+Step 3: Configure nats-server — JetStream storage, cluster routes, and domain settings.
 
-Step 4: Select consumer type (push or pull).
+Step 4: Set up infrastructure — Helm chart, Docker Compose, or systemd units.
 
-Step 5: Configure delivery guarantees and retries.
+Step 5: Configure security — TLS certificates, authentication method, subject-level authorization.
 
-Step 6: Provide example implementation code.
+Step 6: Validate deployment — health checks, cluster connectivity, JetStream readiness.
 
 ## Core Principles
 
-- Prefer pull consumers for worker queues.
-- Prefer push consumers for event listeners.
-- Use replicas=3 for production reliability.
-- Prefer fewer streams with multiple subjects.
+- Minimum 3 nodes for production JetStream clusters (odd number for leader election)
+- Use dedicated storage volumes for JetStream data — never share with OS or logs
+- Set explicit resource limits (max_mem, max_file) per server for JetStream
+- Always enable TLS for production — at minimum server TLS, ideally mTLS
+- Use NKey or JWT-based auth in production — avoid plain tokens
+- Configure liveness and readiness probes — NATS supports health monitoring on port 8222
+- Set `connect_retries` in cluster routes for resilient bootstrapping
+- Use gateways for multi-region — not cluster routes across WAN
+- Pin NATS server versions — don't use `latest` tags in production
