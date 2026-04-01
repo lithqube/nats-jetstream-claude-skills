@@ -1,0 +1,124 @@
+{
+  "skill_name": "nats-jetstream-skills",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building an order processing system in Go. Orders are produced by an API and consumed by 3 services: payment, inventory, and notifications. Each service needs to process every order independently. How should I design this with NATS JetStream? Give me the stream config and consumer configs, plus working Go code.",
+      "expected_output": "A fanout stream design with LimitsPolicy or InterestPolicy retention, one durable consumer per service, pull consumers with AckExplicit, working Go code using nats.go with proper error handling, subject namespace recommendation like orders.>",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses LimitsPolicy or InterestPolicy retention (not WorkQueuePolicy, which destroys messages after one ack — wrong for fanout)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Creates a separate durable consumer for each of the 3 services: payment, inventory, and notifications",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Uses AckExplicit (not AckAll or AckNone) for the consumer ack policy",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Sets MaxDeliver or mentions dead-letter handling strategy for failed messages",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides working Go code (not pseudocode) using nats.go — includes actual function calls like nc.Connect, js.AddStream, etc.",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Uses a hierarchical subject namespace like 'orders.>' or 'orders.created' (not a flat subject like 'orders')",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to deploy a 3-node NATS JetStream cluster on Kubernetes. We're using Helm. I need production-grade config: persistent storage, TLS, NKey auth, proper health probes, and NetworkPolicy to lock down access. Give me the full values.yaml and any supporting manifests.",
+      "expected_output": "Complete Helm values.yaml with JetStream config, PVC storage, resource limits, health probes, TLS config, NKey authentication setup, and NetworkPolicy manifest",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Provides a values.yaml with JetStream explicitly enabled (jetstream.enabled: true or equivalent)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Includes resource requests and limits for the NATS containers",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Includes readiness and liveness probes (or references port 8222 health endpoint)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Includes a NetworkPolicy manifest restricting ingress/egress",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "References TLS configuration (certificate secret or TLS settings in values.yaml)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "References NKey or JWT authentication (not plain token auth)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Includes persistent volume claim or storage config for JetStream data",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My JetStream consumer has been falling behind for the past hour. nats consumer report shows Num Pending keeps growing even though my workers are running. How do I diagnose and fix this? What CLI commands should I run and what are the most likely causes?",
+      "expected_output": "Step-by-step diagnosis starting with nats stream report and nats consumer report, checking num_ack_pending vs num_pending, likely causes (MaxAckPending too low, slow processing, small batch size, short AckWait), specific CLI commands to run, concrete fixes for each cause",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Recommends 'nats stream report' and 'nats consumer report' (or 'nats consumer info') as the first diagnostic commands",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Distinguishes between num_pending (messages not yet delivered) and num_ack_pending (delivered but not yet acked) — these have different fixes",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Mentions MaxAckPending as a potential bottleneck (when it's too low, JetStream stops delivering new messages)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Mentions AckWait timeout as a cause of redeliveries that can contribute to apparent lag",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides at least 3 distinct root causes with specific fixes for each (not just a generic list)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides the specific 'nats consumer info <stream> <consumer>' CLI command for detailed inspection",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    }
+  ]
+}

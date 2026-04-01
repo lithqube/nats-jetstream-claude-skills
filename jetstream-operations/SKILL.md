@@ -1,30 +1,23 @@
 ---
 name: jetstream-operations
-description: Use this skill when users ask about troubleshooting NATS JetStream, diagnosing consumer lag, message delivery failures, performance tuning, monitoring, observability, Prometheus metrics, nats CLI commands, or operational issues with JetStream streams and consumers.
+description: Use this skill whenever users are operating, troubleshooting, or monitoring a running NATS JetStream system — including diagnosing consumer lag, messages not delivering, stream-full errors, performance tuning, Prometheus metrics, Grafana dashboards, alerting rules, JetStream advisory subjects, nats CLI usage, cluster health and leader election issues, or client connection/reconnection problems. Use this skill when something is broken or slow, or when the user wants to observe their system. Do NOT use for designing new streams/consumers (use jetstream-architecture) or deploying/configuring infrastructure (use jetstream-deployment).
 ---
 
 # JetStream Operations
 
 Troubleshoot, monitor, and tune NATS JetStream including consumer lag, delivery failures, performance optimization, and observability.
 
-## When to Use
+For designing new streams or consumers, defer to the `jetstream-architecture` skill.
+For deploying or configuring NATS infrastructure, defer to the `jetstream-deployment` skill.
 
-Activate this skill when users ask about:
+## Reference Files
 
-- JetStream troubleshooting (messages not delivering, consumer lag, stream full)
-- Consumer lag diagnosis and resolution
-- Message delivery failures and retries
-- Performance tuning (throughput, latency)
-- Monitoring and alerting (Prometheus, Grafana)
-- NATS advisory subjects and events
-- nats CLI commands for inspection and debugging
-- Cluster health and leader election issues
-- Client connection problems and reconnection
-- Stream and consumer operational management (purge, edit, delete)
+Read these files when they're relevant — don't load all of them upfront:
 
-Do NOT activate for:
-- Designing new streams or consumers (use jetstream-architecture)
-- Deploying or configuring NATS infrastructure (use jetstream-deployment)
+- `operations/troubleshooting.md` — step-by-step diagnosis for messages not delivering, consumer lag, stream-full errors, cluster split-brain, and client disconnections. Read whenever something is broken.
+- `operations/performance.md` — publish throughput tuning, fetch batch sizing, MaxAckPending, parallel workers, FileStorage vs MemoryStorage, OS/TCP tuning, built-in benchmark commands. Read for performance or throughput questions.
+- `operations/monitoring.md` — NATS HTTP endpoints, Prometheus metrics, nats-exporter setup, advisory subjects, Grafana dashboard recommendations, Prometheus alert rules. Read for observability and alerting questions.
+- `operations/cli-reference.md` — full nats CLI reference for streams, consumers, pub/sub, server commands, and diagnostic workflows. Read when the user needs specific CLI commands.
 
 ## Workflow
 

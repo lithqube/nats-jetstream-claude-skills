@@ -1,31 +1,23 @@
 ---
 name: jetstream-deployment
-description: Use this skill when users ask about deploying NATS JetStream, configuring nats-server, Kubernetes NATS Helm charts, Docker Compose setups, clustering, multi-region gateways, leaf nodes, TLS, authentication, authorization, or infrastructure sizing for NATS.
+description: Use this skill whenever users need to deploy, configure, or secure a NATS JetStream server or cluster — including nats-server.conf configuration, Kubernetes Helm charts, StatefulSets, Docker Compose, multi-region super-clusters with gateways, leaf nodes, TLS/mTLS setup, NKey/JWT authentication, subject-level authorization, or infrastructure sizing. Use this skill even for general "how do I run NATS in production?" questions. Do NOT use for stream/consumer design or code examples (use jetstream-architecture) or troubleshooting/monitoring (use jetstream-operations).
 ---
 
 # JetStream Deployment
 
 Deploy and configure NATS JetStream clusters including server configuration, Kubernetes, Docker, clustering, security, and multi-region setups.
 
-## When to Use
+For stream/consumer design or application code, defer to the `jetstream-architecture` skill.
+For troubleshooting, monitoring, or performance tuning, defer to the `jetstream-operations` skill.
 
-Activate this skill when users ask about:
+## Reference Files
 
-- NATS server configuration (nats-server.conf)
-- JetStream cluster setup and topology
-- Kubernetes deployment (Helm charts, StatefulSets, operators)
-- Docker and Docker Compose setups
-- Multi-region / super-cluster with gateways
-- Leaf node configuration
-- TLS and mTLS setup
-- Authentication (tokens, NKeys, JWT/accounts)
-- Authorization and subject permissions
-- Infrastructure sizing (CPU, memory, disk)
-- High availability and fault tolerance
+Read these files when they're relevant — don't load all of them upfront:
 
-Do NOT activate for:
-- Stream/consumer design or code examples (use jetstream-architecture)
-- Troubleshooting, monitoring, or performance tuning (use jetstream-operations)
+- `deployment/cluster.md` — single-node dev config, 3-node production cluster, sizing guidelines, multi-region super-clusters with gateways, leaf nodes for edge deployments. Read for any clustering or topology question.
+- `deployment/docker.md` — Docker single-node and 3-node cluster Docker Compose configs with health checks. Read when the user wants Docker or local development setups.
+- `deployment/kubernetes.md` — Helm chart values, StatefulSet config, PVCs, pod anti-affinity, health probes, NetworkPolicy, Prometheus setup. Read for any Kubernetes deployment question.
+- `deployment/security.md` — TLS/mTLS config, NKey auth, JWT/accounts with nsc, subject-level permissions, multi-tenant account isolation. Read whenever security, auth, or TLS comes up.
 
 ## Workflow
 

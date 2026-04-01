@@ -1,0 +1,37 @@
+{
+  "eval_id": 3,
+  "eval_name": "consumer-lag-diagnosis",
+  "run_type": "with_skill",
+  "expectations": [
+    {
+      "text": "Recommends 'nats stream report' and 'nats consumer report' (or 'nats consumer info') as the first diagnostic commands",
+      "passed": true,
+      "evidence": "nats consumer report ORDERS\n\n# Full details on the specific consumer\nnats consumer info ORDERS order-processor"
+    },
+    {
+      "text": "Distinguishes between num_pending (messages not yet delivered) and num_ack_pending (delivered but not yet acked) — these have different fixes",
+      "passed": true,
+      "evidence": "Num Pending | Messages in the stream not yet delivered to this consumer | The backlog — how far behind the consumer is | Num Ack Pending | Messages delivered to workers but not yet acknowledged | How many in-flight messages the consumer is holding"
+    },
+    {
+      "text": "Mentions MaxAckPending as a potential bottleneck (when it's too low, JetStream stops delivering new messages)",
+      "passed": true,
+      "evidence": "If Num Ack Pending equals Max Ack Pending, the consumer is blocked — NATS will not deliver any more messages until workers acknowledge the ones already in flight. This is the single most common cause of growing Num Pending when workers appear to be running."
+    },
+    {
+      "text": "Mentions AckWait timeout as a cause of redeliveries that can contribute to apparent lag",
+      "passed": true,
+      "evidence": "If AckWait is shorter than the time your workers need to process a message, NATS redelivers the message before the worker finishes. This wastes capacity: the worker processes the message, acks it, but NATS has already moved on to a redelivery — wasting slots and causing double-processing."
+    },
+    {
+      "text": "Provides at least 3 distinct root causes with specific fixes for each (not just a generic list)",
+      "passed": true,
+      "evidence": "Cause 1: MaxAckPending Too Low (fix: nats consumer edit ... --max-pending 5000); Cause 2: AckWait Too Short (fix: nats consumer edit ... --ack-wait 120s); Cause 3: Fetch Batch Size Too Small (fix: increase Fetch batch size in worker code); Cause 4: Not Enough Worker Instances; Cause 5: Cluster or Leader Issue"
+    },
+    {
+      "text": "Provides the specific 'nats consumer info <stream> <consumer>' CLI command for detailed inspection",
+      "passed": true,
+      "evidence": "nats consumer info ORDERS order-processor"
+    }
+  ]
+}

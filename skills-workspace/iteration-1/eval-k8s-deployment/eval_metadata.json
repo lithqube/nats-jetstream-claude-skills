@@ -1,0 +1,42 @@
+{
+  "eval_id": 2,
+  "eval_name": "kubernetes-production-deployment",
+  "prompt": "I need to deploy a 3-node NATS JetStream cluster on Kubernetes. We're using Helm. I need production-grade config: persistent storage, TLS, NKey auth, proper health probes, and NetworkPolicy to lock down access. Give me the full values.yaml and any supporting manifests.",
+  "assertions": [
+    {
+      "text": "Provides a values.yaml with JetStream explicitly enabled (jetstream.enabled: true or equivalent)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Includes resource requests and limits for the NATS containers",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Includes readiness and liveness probes (or references port 8222 health endpoint)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Includes a NetworkPolicy manifest restricting ingress/egress",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "References TLS configuration (certificate secret or TLS settings in values.yaml)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "References NKey or JWT authentication (not plain token auth)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Includes persistent volume claim or storage config for JetStream data",
+      "passed": null,
+      "evidence": null
+    }
+  ]
+}

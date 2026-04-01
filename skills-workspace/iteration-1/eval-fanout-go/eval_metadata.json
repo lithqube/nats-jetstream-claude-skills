@@ -1,0 +1,37 @@
+{
+  "eval_id": 1,
+  "eval_name": "fanout-pattern-go-code",
+  "prompt": "I'm building an order processing system in Go. Orders are produced by an API and consumed by 3 services: payment, inventory, and notifications. Each service needs to process every order independently. How should I design this with NATS JetStream? Give me the stream config and consumer configs, plus working Go code.",
+  "assertions": [
+    {
+      "text": "Uses LimitsPolicy or InterestPolicy retention (not WorkQueuePolicy, which destroys messages after one ack — wrong for fanout)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Creates a separate durable consumer for each of the 3 services: payment, inventory, and notifications",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Uses AckExplicit (not AckAll or AckNone) for the consumer ack policy",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Sets MaxDeliver or mentions dead-letter handling strategy for failed messages",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Provides working Go code (not pseudocode) using nats.go — includes actual function calls like nc.Connect, js.AddStream, etc.",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Uses a hierarchical subject namespace like 'orders.>' or 'orders.created' (not a flat subject like 'orders')",
+      "passed": null,
+      "evidence": null
+    }
+  ]
+}

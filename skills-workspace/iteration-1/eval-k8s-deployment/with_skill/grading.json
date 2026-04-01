@@ -1,0 +1,42 @@
+{
+  "eval_id": 2,
+  "eval_name": "kubernetes-production-deployment",
+  "run_type": "with_skill",
+  "expectations": [
+    {
+      "text": "Provides a values.yaml with JetStream explicitly enabled (jetstream.enabled: true or equivalent)",
+      "passed": true,
+      "evidence": "jetstream:\n    enabled: true\n    memoryStore:\n      enabled: true\n      size: 4Gi"
+    },
+    {
+      "text": "Includes resource requests and limits for the NATS containers",
+      "passed": true,
+      "evidence": "resources:\n    requests:\n      cpu: \"2\"\n      memory: 8Gi\n    limits:\n      cpu: \"4\"\n      memory: 16Gi"
+    },
+    {
+      "text": "Includes readiness and liveness probes (or references port 8222 health endpoint)",
+      "passed": true,
+      "evidence": "readinessProbe:\n    httpGet:\n      path: /healthz?js-enabled-only=true\n      port: 8222 ... livenessProbe:\n    httpGet:\n      path: /healthz\n      port: 8222"
+    },
+    {
+      "text": "Includes a NetworkPolicy manifest restricting ingress/egress",
+      "passed": true,
+      "evidence": "kind: NetworkPolicy ... policyTypes:\n    - Ingress\n    - Egress ... ingress: [client port 4222, cluster route 6222, monitoring 8222/7777] ... egress: [cluster route 6222, DNS 53]"
+    },
+    {
+      "text": "References TLS configuration (certificate secret or TLS settings in values.yaml)",
+      "passed": true,
+      "evidence": "tls:\n    secret:\n      name: nats-tls\n    ca: \"ca.pem\"\n    cert: \"server-cert.pem\"\n    key: \"server-key.pem\"\n    verify: true"
+    },
+    {
+      "text": "References NKey or JWT authentication (not plain token auth)",
+      "passed": true,
+      "evidence": "authorization:\n      users:\n        - nkey: \"UA7BQBSMZORDER000EXAMPLEPUBKEY\" ... - nkey: \"UB3DKQMSLANALYTICS000EXAMPLEPUBKEY\""
+    },
+    {
+      "text": "Includes persistent volume claim or storage config for JetStream data",
+      "passed": true,
+      "evidence": "fileStore:\n      enabled: true\n      size: 100Gi\n      storageClassName: gp3-encrypted"
+    }
+  ]
+}

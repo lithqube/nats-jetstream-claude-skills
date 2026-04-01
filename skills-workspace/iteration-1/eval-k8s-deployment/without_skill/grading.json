@@ -1,0 +1,42 @@
+{
+  "eval_id": 2,
+  "eval_name": "kubernetes-production-deployment",
+  "run_type": "without_skill",
+  "expectations": [
+    {
+      "text": "Provides a values.yaml with JetStream explicitly enabled (jetstream.enabled: true or equivalent)",
+      "passed": true,
+      "evidence": "nats:\n  jetstream:\n    enabled: true\n    memStorage:\n      enabled: true\n      size: 1Gi\n    fileStorage:\n      enabled: true"
+    },
+    {
+      "text": "Includes resource requests and limits for the NATS containers",
+      "passed": true,
+      "evidence": "resources:\n  requests:\n    cpu: 250m\n    memory: 512Mi\n  limits:\n    cpu: 2000m\n    memory: 2Gi"
+    },
+    {
+      "text": "Includes readiness and liveness probes (or references port 8222 health endpoint)",
+      "passed": true,
+      "evidence": "liveness:\n  httpGet:\n    path: /healthz\n    port: 8222\nreadiness:\n  httpGet:\n    path: /readyz\n    port: 8222"
+    },
+    {
+      "text": "Includes a NetworkPolicy manifest restricting ingress/egress",
+      "passed": true,
+      "evidence": "name: default-deny-all ... policyTypes:\n    - Ingress\n    - Egress — followed by multiple allow-listed NetworkPolicy resources"
+    },
+    {
+      "text": "References TLS configuration (certificate secret or TLS settings in values.yaml)",
+      "passed": true,
+      "evidence": "tls:\n  enabled: true\n  secretName: nats-server-tls — plus full cert-manager Certificate manifest with secretName: nats-server-tls"
+    },
+    {
+      "text": "References NKey or JWT authentication (not plain token auth)",
+      "passed": true,
+      "evidence": "auth:\n  enabled: true\n  # Use NATS decentralised auth (operator/account/user JWT + NKeys)\n  resolver:\n    enabled: true"
+    },
+    {
+      "text": "Includes persistent volume claim or storage config for JetStream data",
+      "passed": true,
+      "evidence": "nats:\n  jetstream:\n    fileStorage:\n      enabled: true\n      size: 20Gi\n      storageClassName: \"standard\" — also storageclass.yaml with reclaimPolicy: Retain"
+    }
+  ]
+}

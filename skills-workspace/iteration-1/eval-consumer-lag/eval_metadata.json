@@ -1,0 +1,37 @@
+{
+  "eval_id": 3,
+  "eval_name": "consumer-lag-diagnosis",
+  "prompt": "My JetStream consumer has been falling behind for the past hour. nats consumer report shows Num Pending keeps growing even though my workers are running. How do I diagnose and fix this? What CLI commands should I run and what are the most likely causes?",
+  "assertions": [
+    {
+      "text": "Recommends 'nats stream report' and 'nats consumer report' (or 'nats consumer info') as the first diagnostic commands",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Distinguishes between num_pending (messages not yet delivered) and num_ack_pending (delivered but not yet acked) — these have different fixes",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Mentions MaxAckPending as a potential bottleneck (when it's too low, JetStream stops delivering new messages)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Mentions AckWait timeout as a cause of redeliveries that can contribute to apparent lag",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Provides at least 3 distinct root causes with specific fixes for each (not just a generic list)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Provides the specific 'nats consumer info <stream> <consumer>' CLI command for detailed inspection",
+      "passed": null,
+      "evidence": null
+    }
+  ]
+}

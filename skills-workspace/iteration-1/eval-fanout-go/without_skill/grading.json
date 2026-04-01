@@ -1,0 +1,37 @@
+{
+  "eval_id": 1,
+  "eval_name": "fanout-pattern-go-code",
+  "run_type": "without_skill",
+  "expectations": [
+    {
+      "text": "Uses LimitsPolicy or InterestPolicy retention (not WorkQueuePolicy, which destroys messages after one ack — wrong for fanout)",
+      "passed": true,
+      "evidence": "Retention: nats.LimitsPolicy"
+    },
+    {
+      "text": "Creates a separate durable consumer for each of the 3 services: payment, inventory, and notifications",
+      "passed": true,
+      "evidence": "Durable: \"payment-service\" ... Durable: \"inventory-service\" ... Durable: \"notifications-service\""
+    },
+    {
+      "text": "Uses AckExplicit (not AckAll or AckNone) for the consumer ack policy",
+      "passed": true,
+      "evidence": "AckPolicy: nats.AckExplicitPolicy"
+    },
+    {
+      "text": "Sets MaxDeliver or mentions dead-letter handling strategy for failed messages",
+      "passed": true,
+      "evidence": "MaxDeliver: 5 (payment, inventory) and MaxDeliver: 3 (notifications); plus operational note: \"When MaxDeliver is exhausted JetStream stops retrying. Add a separate consumer... as an audit log\""
+    },
+    {
+      "text": "Provides working Go code (not pseudocode) using nats.go — includes actual function calls like nc.Connect, js.AddStream, etc.",
+      "passed": true,
+      "evidence": "nc, err := nats.Connect(nats.DefaultURL) ... jsc, err := nc.JetStream() ... js.AddStream(&nats.StreamConfig{...}) ... js.AddConsumer(StreamName, cfg) ... jsc.PullSubscribe(\"orders.>\", durableName, ...)"
+    },
+    {
+      "text": "Uses a hierarchical subject namespace like 'orders.>' or 'orders.created' (not a flat subject like 'orders')",
+      "passed": true,
+      "evidence": "Subjects: []string{\"orders.>\"} ... jsc.Publish(\"orders.created\", payload, ...) ... FilterSubject: \"orders.>\""
+    }
+  ]
+}
