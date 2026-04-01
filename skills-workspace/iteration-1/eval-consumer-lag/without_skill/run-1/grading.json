@@ -1,0 +1,43 @@
+{
+  "eval_id": 3,
+  "eval_name": "consumer-lag-diagnosis",
+  "run_type": "without_skill",
+  "expectations": [
+    {
+      "text": "Recommends 'nats stream report' and 'nats consumer report' (or 'nats consumer info') as the first diagnostic commands",
+      "passed": false,
+      "evidence": "Step 1 opens with 'nats consumer report <stream> <consumer> --watch' and 'nats consumer info <stream> <consumer>' but uses 'nats stream info' \u2014 'nats stream report' is never mentioned anywhere in the document"
+    },
+    {
+      "text": "Distinguishes between num_pending (messages not yet delivered) and num_ack_pending (delivered but not yet acked) \u2014 these have different fixes",
+      "passed": true,
+      "evidence": "Step 1 lists 'Num Ack Pending \u2014 messages delivered but not yet acknowledged' separately from Num Pending; Root Cause 1 targets MaxAckPending cap with 'increase --max-pending' while Root Cause 3 targets general throughput with worker scaling \u2014 distinct fixes for each"
+    },
+    {
+      "text": "Mentions MaxAckPending as a potential bottleneck (when it's too low, JetStream stops delivering new messages)",
+      "passed": true,
+      "evidence": "'Max Ack Pending \u2014 the in-flight cap; if workers hit this, delivery stalls' and Root Cause 1: 'Once the in-flight cap is hit, JetStream stops delivering new messages'"
+    },
+    {
+      "text": "Mentions AckWait timeout as a cause of redeliveries that can contribute to apparent lag",
+      "passed": true,
+      "evidence": "Root Cause 2 'Ack Wait Too Short \u2014 Redelivery Storm': 'Workers receive a message, begin processing, but take longer than Ack Wait. JetStream redelivers the message to another worker (or the same one), doubling the work. This cascades.'"
+    },
+    {
+      "text": "Provides at least 3 distinct root causes with specific fixes for each (not just a generic list)",
+      "passed": true,
+      "evidence": "Seven numbered root causes are provided, each with specific CLI commands or code fixes, e.g. Root Cause 1: 'nats consumer edit <stream> <consumer> --max-pending 10000', Root Cause 2: '--ack-wait 300s' plus Go code for msg.InProgress(), Root Cause 3: worker scaling and fetch batch size tuning"
+    },
+    {
+      "text": "Provides the specific 'nats consumer info <stream> <consumer>' CLI command for detailed inspection",
+      "passed": true,
+      "evidence": "'nats consumer info <stream> <consumer>' appears in Step 1 as a standalone command with key fields to inspect, and again in Step 2: 'nats consumer info <stream> <consumer> | grep -E \"Ack Pending|Max Ack Pending\"'"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8333,
+    "passed": 5,
+    "failed": 1,
+    "total": 6
+  }
+}

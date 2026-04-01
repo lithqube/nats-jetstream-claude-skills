@@ -1,0 +1,43 @@
+{
+  "eval_id": 1,
+  "eval_name": "fanout-pattern-go-code",
+  "run_type": "with_skill",
+  "expectations": [
+    {
+      "text": "Uses LimitsPolicy or InterestPolicy retention (not WorkQueuePolicy, which destroys messages after one ack \u2014 wrong for fanout)",
+      "passed": true,
+      "evidence": "Retention: nats.LimitsPolicy"
+    },
+    {
+      "text": "Creates a separate durable consumer for each of the 3 services: payment, inventory, and notifications",
+      "passed": true,
+      "evidence": "Durable: \"payment-service\" ... Durable: \"inventory-service\" ... Durable: \"notifications-service\""
+    },
+    {
+      "text": "Uses AckExplicit (not AckAll or AckNone) for the consumer ack policy",
+      "passed": true,
+      "evidence": "AckPolicy: nats.AckExplicit"
+    },
+    {
+      "text": "Sets MaxDeliver or mentions dead-letter handling strategy for failed messages",
+      "passed": true,
+      "evidence": "MaxDeliver: 5 (payment), MaxDeliver: 7 (inventory), MaxDeliver: 3 (notifications); msg.Term() for unrecoverable errors"
+    },
+    {
+      "text": "Provides working Go code (not pseudocode) using nats.go \u2014 includes actual function calls like nc.Connect, js.AddStream, etc.",
+      "passed": true,
+      "evidence": "nc, err := nats.Connect(natsURL, ...) ... js, err := nc.JetStream(...) ... _, err := js.AddStream(cfg) ... js.AddConsumer(\"ORDERS\", c.config)"
+    },
+    {
+      "text": "Uses a hierarchical subject namespace like 'orders.>' or 'orders.created' (not a flat subject like 'orders')",
+      "passed": true,
+      "evidence": "Subjects: []string{\"orders.>\"} ... Subject: \"orders.created\""
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 6,
+    "failed": 0,
+    "total": 6
+  }
+}
