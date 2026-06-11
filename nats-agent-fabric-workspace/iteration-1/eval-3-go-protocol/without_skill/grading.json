@@ -1,0 +1,53 @@
+{
+  "run_id": "eval-3-without_skill",
+  "expectations": [
+    {
+      "text": "Registers a NATS micro service named exactly 'agents'",
+      "passed": false,
+      "evidence": "micro.Config{ Name: agentName } \u2014 names the service after the agent id, not the literal 'agents' discovery anchor; a caller filtering on service 'agents' would not find it"
+    },
+    {
+      "text": "Serves the prompt endpoint on NATS queue group 'agents'",
+      "passed": false,
+      "evidence": "Uses per-agent subjects agents.<id>.prompt; queue group is per-agent, not the literal 'agents' group"
+    },
+    {
+      "text": "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"}",
+      "passed": false,
+      "evidence": "No ack chunk; uses an SSE-style stream with id/type/payload frames and a terminal done frame"
+    },
+    {
+      "text": "Terminates the stream with a zero-byte / header-less message",
+      "passed": false,
+      "evidence": "Terminates with a JSON 'done'/'error' frame, not a zero-byte header-less message"
+    },
+    {
+      "text": "Publishes heartbeats to agents.hb.{agent}.{owner}.{name}",
+      "passed": false,
+      "evidence": "Publishes to agents.<id>.heartbeat (invented), not agents.hb.{agent}.{owner}.{name}"
+    },
+    {
+      "text": "Provides working Go using the nats.go micro package",
+      "passed": true,
+      "evidence": "Real micro.AddService(nc, micro.Config{...}) with endpoints"
+    },
+    {
+      "text": "Mentions $SRV discovery (PING/INFO.agents)",
+      "passed": true,
+      "evidence": "Explains micro auto-subscribes to $SRV.PING/INFO/STATS for discovery"
+    }
+  ],
+  "passed_count": 2,
+  "total_count": 7,
+  "summary": {
+    "pass_rate": 0.2857,
+    "passed": 2,
+    "failed": 5,
+    "total": 7
+  },
+  "timing": {
+    "total_tokens": 38350,
+    "duration_ms": 107241,
+    "total_duration_seconds": 107.2
+  }
+}

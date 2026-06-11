@@ -1,0 +1,48 @@
+{
+  "run_id": "eval-1-with_skill",
+  "expectations": [
+    {
+      "text": "Uses the caller SDK @synadia-ai/agents (Agents client)",
+      "passed": true,
+      "evidence": "import { Agents } from \"@synadia-ai/agents\"; const agents = new Agents({ nc })"
+    },
+    {
+      "text": "Discovers agents dynamically via discover() / $SRV",
+      "passed": true,
+      "evidence": "const all = await agents.discover(); explains it wraps $SRV.PING/INFO.agents"
+    },
+    {
+      "text": "Fans the prompt out to multiple agents concurrently",
+      "passed": true,
+      "evidence": "return Promise.all(targets.map(...)) over discovered coding agents"
+    },
+    {
+      "text": "Consumes each reply as a stream of typed chunks (msg.type === 'response')",
+      "passed": true,
+      "evidence": "for await (const msg of await agent.prompt(promptText)) { switch (msg.type) { case 'response': ... } }"
+    },
+    {
+      "text": "Provides working TypeScript (not pseudocode)",
+      "passed": true,
+      "evidence": "complete runnable meta-agent.ts with connect(), imports, async iteration, install/run commands"
+    },
+    {
+      "text": "Does NOT manually construct agents.prompt.* subjects in caller code",
+      "passed": true,
+      "evidence": "explicitly: 'Let discover() hand you agent handles; don't build agents.prompt.* subjects yourself'"
+    }
+  ],
+  "passed_count": 6,
+  "total_count": 6,
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 6,
+    "failed": 0,
+    "total": 6
+  },
+  "timing": {
+    "total_tokens": 46552,
+    "duration_ms": 77797,
+    "total_duration_seconds": 77.8
+  }
+}

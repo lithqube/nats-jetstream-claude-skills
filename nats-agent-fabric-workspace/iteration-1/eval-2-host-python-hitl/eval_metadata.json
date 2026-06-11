@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "host-python-hitl",
+  "prompt": "I have a Python LLM agent and I want other services to be able to discover it and send it prompts over NATS, streaming the answer back token by token. It also needs to pause and ask for human confirmation before doing anything destructive. How do I expose it using the Synadia agent host SDK?",
+  "assertions": [
+    "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt handler)",
+    "Registers the agent with identity (agent / owner / session_name) via the AgentService constructor",
+    "Streams the reply token-by-token via repeated stream.send() calls rather than returning a single complete string",
+    "Implements human-in-the-loop confirmation via a mid-stream query before the destructive action",
+    "Provides working Python (real imports, asyncio, nats.connect, service.start()) — not pseudocode",
+    "Correctly relies on the SDK for registration/ack/terminator OR accurately states the protocol requirements"
+  ]
+}

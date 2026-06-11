@@ -1,0 +1,363 @@
+{
+  "metadata": {
+    "skill_name": "nats-agent-fabric",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-06-11T19:12:27Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 77.8,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses the caller SDK @synadia-ai/agents (Agents client)",
+          "passed": true,
+          "evidence": "import { Agents } from \"@synadia-ai/agents\"; const agents = new Agents({ nc })"
+        },
+        {
+          "text": "Discovers agents dynamically via discover() / $SRV",
+          "passed": true,
+          "evidence": "const all = await agents.discover(); explains it wraps $SRV.PING/INFO.agents"
+        },
+        {
+          "text": "Fans the prompt out to multiple agents concurrently",
+          "passed": true,
+          "evidence": "return Promise.all(targets.map(...)) over discovered coding agents"
+        },
+        {
+          "text": "Consumes each reply as a stream of typed chunks (msg.type === 'response')",
+          "passed": true,
+          "evidence": "for await (const msg of await agent.prompt(promptText)) { switch (msg.type) { case 'response': ... } }"
+        },
+        {
+          "text": "Provides working TypeScript (not pseudocode)",
+          "passed": true,
+          "evidence": "complete runnable meta-agent.ts with connect(), imports, async iteration, install/run commands"
+        },
+        {
+          "text": "Does NOT manually construct agents.prompt.* subjects in caller code",
+          "passed": true,
+          "evidence": "explicitly: 'Let discover() hand you agent handles; don't build agents.prompt.* subjects yourself'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 98.7,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt)",
+          "passed": true,
+          "evidence": "from synadia_ai.agent_service import AgentService, PromptStream; service.on_prompt(handler)"
+        },
+        {
+          "text": "Registers the agent with identity via the AgentService constructor",
+          "passed": true,
+          "evidence": "AgentService(agent=..., owner=..., session_name=..., nc=nc, description=...)"
+        },
+        {
+          "text": "Streams the reply token-by-token via repeated stream.send()",
+          "passed": true,
+          "evidence": "async for token in model.stream(...): await stream.send(token)"
+        },
+        {
+          "text": "Implements human-in-the-loop via a mid-stream query before destructive action",
+          "passed": true,
+          "evidence": "confirm() helper emits a mid-stream query chunk and gates destructive actions on the human reply (default-deny on timeout)"
+        },
+        {
+          "text": "Provides working Python (not pseudocode)",
+          "passed": true,
+          "evidence": "Full asyncio + nats.connect host with service.start(), three staged examples"
+        },
+        {
+          "text": "Relies on SDK for registration/ack/terminator OR states protocol reqs correctly",
+          "passed": true,
+          "evidence": "States service name 'agents', queue group 'agents', ack-first chunk, zero-byte/header-less terminator, query answered once on reply_subject; includes raw-protocol fallback"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 102.5,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Registers a NATS micro service named exactly 'agents'",
+          "passed": true,
+          "evidence": "micro.AddService(nc, micro.Config{ Name: \"agents\", ... }) \u2014 stresses the literal name is the discovery filter"
+        },
+        {
+          "text": "Serves the prompt endpoint on NATS queue group 'agents'",
+          "passed": true,
+          "evidence": "micro.WithEndpointQueueGroup(\"agents\") on the prompt endpoint"
+        },
+        {
+          "text": "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"}",
+          "passed": true,
+          "evidence": "send(nc, reply, chunk{Type: \"status\", Data: \"ack\"}) as the first publish"
+        },
+        {
+          "text": "Terminates the stream with a zero-byte / header-less message",
+          "passed": true,
+          "evidence": "nc.Publish(reply, nil) terminator on both success and error paths; called out as the most common bug"
+        },
+        {
+          "text": "Publishes heartbeats to agents.hb.{agent}.{owner}.{name}",
+          "passed": true,
+          "evidence": "heartbeat goroutine publishing to agents.hb.<agent>.<owner>.<name> on a 30s ticker"
+        },
+        {
+          "text": "Provides working Go using the nats.go micro package",
+          "passed": true,
+          "evidence": "Real imports github.com/nats-io/nats.go/micro, micro.AddService/AddEndpoint, strconv.Itoa, drain on shutdown"
+        },
+        {
+          "text": "Mentions $SRV discovery (PING/INFO.agents)",
+          "passed": true,
+          "evidence": "Explains $SRV.PING.agents / $SRV.INFO.agents and host-vs-caller subject-construction asymmetry; CLI verification"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 80.7,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses the caller SDK @synadia-ai/agents (Agents client)",
+          "passed": false,
+          "evidence": "Leads with generic @nats-io/services; the SDK section imports the WRONG package/class: 'import { AgentClient } from \"@synadia/agents\"' (real is Agents from @synadia-ai/agents), and guesses agent.prompt()/ask()/invoke()/run()"
+        },
+        {
+          "text": "Discovers agents dynamically via discover() / $SRV",
+          "passed": true,
+          "evidence": "Manual $SRV.INFO broadcast-and-collect discovery; also shows client.discover()"
+        },
+        {
+          "text": "Fans the prompt out to multiple agents concurrently",
+          "passed": true,
+          "evidence": "Parallel fan-out with per-agent timeouts and allSettled semantics"
+        },
+        {
+          "text": "Consumes each reply as a stream of typed chunks (msg.type === 'response')",
+          "passed": false,
+          "evidence": "Non-streaming: uses single-reply nc.request(endpointSubject) and a single agent.prompt(prompt, {timeout}) returning one result; no typed response-chunk stream"
+        },
+        {
+          "text": "Provides working TypeScript (not pseudocode)",
+          "passed": true,
+          "evidence": "Runnable Approach A on @nats-io/services"
+        },
+        {
+          "text": "Does NOT manually construct agents.prompt.* subjects in caller code",
+          "passed": true,
+          "evidence": "Extracts each agent's endpoint subject from the $SRV.INFO discovery record rather than hardcoding"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 82.1,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt)",
+          "passed": false,
+          "evidence": "Invents a non-existent 'agentp/agent-host runtime'; real runnable code falls back to raw nats-py with a hand-rolled decorator pattern"
+        },
+        {
+          "text": "Registers the agent with identity via the AgentService constructor",
+          "passed": false,
+          "evidence": "No real AgentService; registers a generic micro service named after the agent, not via the SDK's identity constructor"
+        },
+        {
+          "text": "Streams the reply token-by-token via repeated stream.send()",
+          "passed": true,
+          "evidence": "Publishes one message per token to a per-request reply inbox"
+        },
+        {
+          "text": "Implements human-in-the-loop via a mid-stream query before destructive action",
+          "passed": false,
+          "evidence": "Uses a SEPARATE subject agent.<name>.confirm with a blocking nc.request \u2014 NOT the protocol's mid-stream query chunk on the open stream; would not interoperate with a real caller"
+        },
+        {
+          "text": "Provides working Python (not pseudocode)",
+          "passed": true,
+          "evidence": "Runnable nats-py implementation"
+        },
+        {
+          "text": "Relies on SDK for registration/ack/terminator OR states protocol reqs correctly",
+          "passed": false,
+          "evidence": "Wrong contract: prompt subject agent.<name>.prompt, 'done' sentinel terminator, no 'agents' service name, no ack-first chunk, no zero-byte terminator"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2857,
+        "passed": 2,
+        "failed": 5,
+        "total": 7,
+        "time_seconds": 107.2,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Registers a NATS micro service named exactly 'agents'",
+          "passed": false,
+          "evidence": "micro.Config{ Name: agentName } \u2014 names the service after the agent id, not the literal 'agents' discovery anchor; a caller filtering on service 'agents' would not find it"
+        },
+        {
+          "text": "Serves the prompt endpoint on NATS queue group 'agents'",
+          "passed": false,
+          "evidence": "Uses per-agent subjects agents.<id>.prompt; queue group is per-agent, not the literal 'agents' group"
+        },
+        {
+          "text": "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"}",
+          "passed": false,
+          "evidence": "No ack chunk; uses an SSE-style stream with id/type/payload frames and a terminal done frame"
+        },
+        {
+          "text": "Terminates the stream with a zero-byte / header-less message",
+          "passed": false,
+          "evidence": "Terminates with a JSON 'done'/'error' frame, not a zero-byte header-less message"
+        },
+        {
+          "text": "Publishes heartbeats to agents.hb.{agent}.{owner}.{name}",
+          "passed": false,
+          "evidence": "Publishes to agents.<id>.heartbeat (invented), not agents.hb.{agent}.{owner}.{name}"
+        },
+        {
+          "text": "Provides working Go using the nats.go micro package",
+          "passed": true,
+          "evidence": "Real micro.AddService(nc, micro.Config{...}) with endpoints"
+        },
+        {
+          "text": "Mentions $SRV discovery (PING/INFO.agents)",
+          "passed": true,
+          "evidence": "Explains micro auto-subscribes to $SRV.PING/INFO/STATS for discovery"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 93.0,
+        "stddev": 13.3,
+        "min": 77.8,
+        "max": 102.5
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.4286,
+        "stddev": 0.2076,
+        "min": 0.2857,
+        "max": 0.6667
+      },
+      "time_seconds": {
+        "mean": 90.0,
+        "stddev": 14.9121,
+        "min": 80.7,
+        "max": 107.2
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.57",
+      "time_seconds": "+3.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

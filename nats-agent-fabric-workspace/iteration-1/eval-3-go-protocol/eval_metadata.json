@@ -1,0 +1,14 @@
+{
+  "eval_id": 3,
+  "eval_name": "go-protocol-compliance",
+  "prompt": "Our agents are written in Go but Synadia doesn't have a Go SDK yet. I need my Go service to be compliant with the Synadia Agent Protocol so the TypeScript orchestrator can discover and prompt it. What exactly does my Go agent need to do — registering as a service, the subjects, streaming, heartbeats? Give me the Go code.",
+  "assertions": [
+    "Registers a NATS micro service named exactly 'agents' (the discovery anchor)",
+    "Serves the prompt endpoint on NATS queue group 'agents'",
+    "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"} before response chunks",
+    "Terminates the stream with a zero-byte / empty message carrying no headers",
+    "Publishes heartbeats to agents.hb.{agent}.{owner}.{name}",
+    "Provides working Go using the nats.go micro package (real import, micro.AddService / AddEndpoint)",
+    "Mentions $SRV discovery (PING/INFO.agents) so the orchestrator can find the agent"
+  ]
+}

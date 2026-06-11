@@ -1,0 +1,124 @@
+{
+  "skill_name": "nats-agent-fabric",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build a meta-agent in TypeScript that finds all the coding agents currently running on our NATS bus, sends the same prompt to each of them, and collects all their responses so I can compare them. We're using Synadia's new agents SDK. How do I discover the agents and fan out the prompt? Show me working code.",
+      "expected_output": "A TypeScript meta-agent using @synadia-ai/agents: connect to NATS, create an Agents client, discover() the fleet (via $SRV), filter to coding agents, fan out the prompt concurrently (Promise.all), consume each reply as a stream of typed chunks (msg.type === 'response'), and collect results keyed by agent identity. No hand-constructed prompt subjects.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses the caller SDK @synadia-ai/agents (imports/creates an Agents client) rather than hand-rolling NATS subjects",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Discovers agents dynamically via discover() / $SRV rather than hardcoding agent endpoints",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Fans the prompt out to multiple agents concurrently (e.g. Promise.all / map over discovered agents)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Consumes each reply as a stream of typed chunks, branching on msg.type === 'response' (not treating the reply as a single blocking value)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides working TypeScript (real imports, connect(), async iteration) — not pseudocode",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Does NOT manually construct agents.prompt.* subjects in caller code (addresses discovered agent handles instead)",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a Python LLM agent and I want other services to be able to discover it and send it prompts over NATS, streaming the answer back token by token. It also needs to pause and ask for human confirmation before doing anything destructive. How do I expose it using the Synadia agent host SDK?",
+      "expected_output": "A Python host using synadia-ai-agent-service: AgentService with agent/owner/session identity, an on_prompt handler that streams tokens via repeated stream.send(), and a mid-stream query for human-in-the-loop confirmation before destructive actions. Real asyncio + nats.connect code.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt handler)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Registers the agent with identity (agent / owner / session_name) via the AgentService constructor",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Streams the reply token-by-token via repeated stream.send() calls rather than returning a single complete string",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Implements human-in-the-loop confirmation via a mid-stream query before the destructive action (not a plain text response)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides working Python (real imports, asyncio, nats.connect, service.start()) — not pseudocode",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Correctly relies on the SDK for registration/ack/terminator OR accurately states the protocol requirements (service name 'agents', ack first chunk, zero-byte terminator)",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our agents are written in Go but Synadia doesn't have a Go SDK yet. I need my Go service to be compliant with the Synadia Agent Protocol so the TypeScript orchestrator can discover and prompt it. What exactly does my Go agent need to do — registering as a service, the subjects, streaming, heartbeats? Give me the Go code.",
+      "expected_output": "A protocol-compliant Go agent over nats.go micro: register a service named exactly 'agents', serve the prompt endpoint on queue group 'agents' with metadata (agent/owner/session/protocol_version), emit the mandatory ack first chunk, stream response chunks, terminate with a zero-byte header-less message, and beacon heartbeats to agents.hb.{agent}.{owner}.{name}. Notes $SRV discovery.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Registers a NATS micro service named exactly 'agents' (the discovery anchor)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Serves the prompt endpoint on NATS queue group 'agents'",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"} before response chunks",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Terminates the stream with a zero-byte / empty message carrying no headers",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Publishes heartbeats to agents.hb.{agent}.{owner}.{name} (periodic liveness beacon)",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Provides working Go using the nats.go micro package (real import, micro.AddService / AddEndpoint) — not pseudocode",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "Mentions $SRV discovery (PING/INFO.agents) so the orchestrator can find the agent",
+          "passed": null,
+          "evidence": null
+        }
+      ]
+    }
+  ]
+}

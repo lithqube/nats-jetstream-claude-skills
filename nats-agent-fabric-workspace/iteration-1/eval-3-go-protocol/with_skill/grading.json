@@ -1,0 +1,53 @@
+{
+  "run_id": "eval-3-with_skill",
+  "expectations": [
+    {
+      "text": "Registers a NATS micro service named exactly 'agents'",
+      "passed": true,
+      "evidence": "micro.AddService(nc, micro.Config{ Name: \"agents\", ... }) \u2014 stresses the literal name is the discovery filter"
+    },
+    {
+      "text": "Serves the prompt endpoint on NATS queue group 'agents'",
+      "passed": true,
+      "evidence": "micro.WithEndpointQueueGroup(\"agents\") on the prompt endpoint"
+    },
+    {
+      "text": "Emits the mandatory first chunk {\"type\":\"status\",\"data\":\"ack\"}",
+      "passed": true,
+      "evidence": "send(nc, reply, chunk{Type: \"status\", Data: \"ack\"}) as the first publish"
+    },
+    {
+      "text": "Terminates the stream with a zero-byte / header-less message",
+      "passed": true,
+      "evidence": "nc.Publish(reply, nil) terminator on both success and error paths; called out as the most common bug"
+    },
+    {
+      "text": "Publishes heartbeats to agents.hb.{agent}.{owner}.{name}",
+      "passed": true,
+      "evidence": "heartbeat goroutine publishing to agents.hb.<agent>.<owner>.<name> on a 30s ticker"
+    },
+    {
+      "text": "Provides working Go using the nats.go micro package",
+      "passed": true,
+      "evidence": "Real imports github.com/nats-io/nats.go/micro, micro.AddService/AddEndpoint, strconv.Itoa, drain on shutdown"
+    },
+    {
+      "text": "Mentions $SRV discovery (PING/INFO.agents)",
+      "passed": true,
+      "evidence": "Explains $SRV.PING.agents / $SRV.INFO.agents and host-vs-caller subject-construction asymmetry; CLI verification"
+    }
+  ],
+  "passed_count": 7,
+  "total_count": 7,
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "timing": {
+    "total_tokens": 48303,
+    "duration_ms": 102527,
+    "total_duration_seconds": 102.5
+  }
+}

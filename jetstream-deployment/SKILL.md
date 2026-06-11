@@ -9,6 +9,7 @@ Deploy and configure NATS JetStream clusters including server configuration, Kub
 
 For stream/consumer design or application code, defer to the `jetstream-architecture` skill.
 For troubleshooting, monitoring, or performance tuning, defer to the `jetstream-operations` skill.
+If the user is deploying a **Synadia Agent fabric** (hosts that register as `agents` micro-services for AI agents to discover and prompt each other), the agent-side design lives in the `nats-agent-fabric` skill — but the NATS server, accounts, TLS, and authn/authz those agent hosts connect to are this skill's job. Agent multi-tenancy and isolation come from **NATS accounts**, so put different agent owners/tenants in separate accounts using the account/JWT setup in `deployment/security.md`.
 
 ## Reference Files
 

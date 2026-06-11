@@ -9,6 +9,7 @@ Troubleshoot, monitor, and tune NATS JetStream including consumer lag, delivery 
 
 For designing new streams or consumers, defer to the `jetstream-architecture` skill.
 For deploying or configuring NATS infrastructure, defer to the `jetstream-deployment` skill.
+If the user is operating a **Synadia Agent fabric**, the same tooling applies: enumerate live agents with `nats req '$SRV.PING.agents' ''`, inspect endpoints/metadata with `$SRV.INFO.agents`, and watch agent liveness on the heartbeat subjects `agents.hb.*.*.*` (an agent is offline after ~3× its advertised `interval_s`). Tapping `agents.>` shows live prompt/response traffic. For how the protocol and those subjects are defined, see the `nats-agent-fabric` skill.
 
 ## Reference Files
 

@@ -1,0 +1,48 @@
+{
+  "run_id": "eval-2-with_skill",
+  "expectations": [
+    {
+      "text": "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt)",
+      "passed": true,
+      "evidence": "from synadia_ai.agent_service import AgentService, PromptStream; service.on_prompt(handler)"
+    },
+    {
+      "text": "Registers the agent with identity via the AgentService constructor",
+      "passed": true,
+      "evidence": "AgentService(agent=..., owner=..., session_name=..., nc=nc, description=...)"
+    },
+    {
+      "text": "Streams the reply token-by-token via repeated stream.send()",
+      "passed": true,
+      "evidence": "async for token in model.stream(...): await stream.send(token)"
+    },
+    {
+      "text": "Implements human-in-the-loop via a mid-stream query before destructive action",
+      "passed": true,
+      "evidence": "confirm() helper emits a mid-stream query chunk and gates destructive actions on the human reply (default-deny on timeout)"
+    },
+    {
+      "text": "Provides working Python (not pseudocode)",
+      "passed": true,
+      "evidence": "Full asyncio + nats.connect host with service.start(), three staged examples"
+    },
+    {
+      "text": "Relies on SDK for registration/ack/terminator OR states protocol reqs correctly",
+      "passed": true,
+      "evidence": "States service name 'agents', queue group 'agents', ack-first chunk, zero-byte/header-less terminator, query answered once on reply_subject; includes raw-protocol fallback"
+    }
+  ],
+  "passed_count": 6,
+  "total_count": 6,
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 6,
+    "failed": 0,
+    "total": 6
+  },
+  "timing": {
+    "total_tokens": 49533,
+    "duration_ms": 98720,
+    "total_duration_seconds": 98.7
+  }
+}

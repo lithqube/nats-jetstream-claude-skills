@@ -9,6 +9,7 @@ Design NATS JetStream streams, subjects, and consumers for event streaming and w
 
 For deployment/clustering/Kubernetes questions, defer to the `jetstream-deployment` skill.
 For troubleshooting, monitoring, or performance tuning, defer to the `jetstream-operations` skill.
+If the user is building **AI agents that discover and prompt each other over NATS** (the Synadia Agent Protocol / Synadia Agents SDK, the `agents.*` subjects), defer to the `nats-agent-fabric` skill — that fabric runs on the NATS Services API, not core JetStream. JetStream and KV come back in only as the **durable memory/handoff layer** behind those agents; designing the streams or KV buckets that back agent state is this skill's job (see `nats-agent-fabric/patterns/durable-state.md` for the agent-specific shape).
 
 ## Reference Files
 

@@ -1,0 +1,48 @@
+{
+  "run_id": "eval-1-without_skill",
+  "expectations": [
+    {
+      "text": "Uses the caller SDK @synadia-ai/agents (Agents client)",
+      "passed": false,
+      "evidence": "Leads with generic @nats-io/services; the SDK section imports the WRONG package/class: 'import { AgentClient } from \"@synadia/agents\"' (real is Agents from @synadia-ai/agents), and guesses agent.prompt()/ask()/invoke()/run()"
+    },
+    {
+      "text": "Discovers agents dynamically via discover() / $SRV",
+      "passed": true,
+      "evidence": "Manual $SRV.INFO broadcast-and-collect discovery; also shows client.discover()"
+    },
+    {
+      "text": "Fans the prompt out to multiple agents concurrently",
+      "passed": true,
+      "evidence": "Parallel fan-out with per-agent timeouts and allSettled semantics"
+    },
+    {
+      "text": "Consumes each reply as a stream of typed chunks (msg.type === 'response')",
+      "passed": false,
+      "evidence": "Non-streaming: uses single-reply nc.request(endpointSubject) and a single agent.prompt(prompt, {timeout}) returning one result; no typed response-chunk stream"
+    },
+    {
+      "text": "Provides working TypeScript (not pseudocode)",
+      "passed": true,
+      "evidence": "Runnable Approach A on @nats-io/services"
+    },
+    {
+      "text": "Does NOT manually construct agents.prompt.* subjects in caller code",
+      "passed": true,
+      "evidence": "Extracts each agent's endpoint subject from the $SRV.INFO discovery record rather than hardcoding"
+    }
+  ],
+  "passed_count": 4,
+  "total_count": 6,
+  "summary": {
+    "pass_rate": 0.6667,
+    "passed": 4,
+    "failed": 2,
+    "total": 6
+  },
+  "timing": {
+    "total_tokens": 35859,
+    "duration_ms": 80710,
+    "total_duration_seconds": 80.7
+  }
+}

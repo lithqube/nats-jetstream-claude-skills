@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "meta-agent-ts",
+  "prompt": "I want to build a meta-agent in TypeScript that finds all the coding agents currently running on our NATS bus, sends the same prompt to each of them, and collects all their responses so I can compare them. We're using Synadia's new agents SDK. How do I discover the agents and fan out the prompt? Show me working code.",
+  "assertions": [
+    "Uses the caller SDK @synadia-ai/agents (imports/creates an Agents client) rather than hand-rolling NATS subjects",
+    "Discovers agents dynamically via discover() / $SRV rather than hardcoding agent endpoints",
+    "Fans the prompt out to multiple agents concurrently (e.g. Promise.all / map over discovered agents)",
+    "Consumes each reply as a stream of typed chunks, branching on msg.type === 'response'",
+    "Provides working TypeScript (real imports, connect(), async iteration) — not pseudocode",
+    "Does NOT manually construct agents.prompt.* subjects in caller code"
+  ]
+}

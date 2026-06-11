@@ -1,0 +1,48 @@
+{
+  "run_id": "eval-2-without_skill",
+  "expectations": [
+    {
+      "text": "Uses the host SDK synadia-ai-agent-service (AgentService + on_prompt)",
+      "passed": false,
+      "evidence": "Invents a non-existent 'agentp/agent-host runtime'; real runnable code falls back to raw nats-py with a hand-rolled decorator pattern"
+    },
+    {
+      "text": "Registers the agent with identity via the AgentService constructor",
+      "passed": false,
+      "evidence": "No real AgentService; registers a generic micro service named after the agent, not via the SDK's identity constructor"
+    },
+    {
+      "text": "Streams the reply token-by-token via repeated stream.send()",
+      "passed": true,
+      "evidence": "Publishes one message per token to a per-request reply inbox"
+    },
+    {
+      "text": "Implements human-in-the-loop via a mid-stream query before destructive action",
+      "passed": false,
+      "evidence": "Uses a SEPARATE subject agent.<name>.confirm with a blocking nc.request \u2014 NOT the protocol's mid-stream query chunk on the open stream; would not interoperate with a real caller"
+    },
+    {
+      "text": "Provides working Python (not pseudocode)",
+      "passed": true,
+      "evidence": "Runnable nats-py implementation"
+    },
+    {
+      "text": "Relies on SDK for registration/ack/terminator OR states protocol reqs correctly",
+      "passed": false,
+      "evidence": "Wrong contract: prompt subject agent.<name>.prompt, 'done' sentinel terminator, no 'agents' service name, no ack-first chunk, no zero-byte terminator"
+    }
+  ],
+  "passed_count": 2,
+  "total_count": 6,
+  "summary": {
+    "pass_rate": 0.3333,
+    "passed": 2,
+    "failed": 4,
+    "total": 6
+  },
+  "timing": {
+    "total_tokens": 35893,
+    "duration_ms": 82089,
+    "total_duration_seconds": 82.1
+  }
+}
