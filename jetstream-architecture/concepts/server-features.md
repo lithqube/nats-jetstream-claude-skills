@@ -7,7 +7,21 @@ assuming it exists.
 ## Detect capability, do not parse a version string
 
 Ask the server. `$JS.API.INFO` returns an `api.level` integer (`JetStreamAPIStats.Level`),
-and that is what to branch on.
+and that is what to branch on for whether the SERVER understands a feature.
+
+**`api.level` is necessary, not sufficient.** It says what the server supports, not what a
+given stream has enabled. Several features are gated a second time by stream config, and the
+failure mode differs per feature rather than being a uniform error:
+
+| Using | Also requires | If missing |
+|---|---|---|
+| `Nats-TTL` | `allow_msg_ttl: true` on the stream | header silently IGNORED, message never expires |
+| Atomic batch headers | `allow_atomic` on the stream | publish rejected |
+| `Nats-Incr` | `allow_msg_counter` | publish rejected |
+| KV per-key TTL | bucket created with `markerTTL` | key expires with NO watcher event |
+
+Check the stream config, not just the level. The two silent ones are the dangerous half:
+a rejected publish tells you, an ignored TTL does not.
 
 ```
 nats server report jetstream        # operator-facing
@@ -42,19 +56,26 @@ exist** — do not gate on it. 2.10 reached EOL in May 2025; 2.11 in April 2026.
 
 ## Feature gates
 
-| Feature | Min server | Min level |
-|---|---|---|
-| Per-message TTL (`Nats-TTL`), subject delete markers, KV per-key TTL | 2.11.0 | 1 |
-| Consumer pause (`pause_until`) | 2.11.0 | 1 |
-| Priority groups: `overflow`, `pinned_client` | 2.11.0 | 1 |
-| Priority `prioritized` policy | 2.12.0 | 2 |
-| Atomic batch publish | 2.12.0 | 2 |
-| Batch dedup (`Nats-Msg-Id` within a batch) | 2.12.1 | 2 |
-| Counter streams (`Nats-Incr`) | 2.12.0 | 2 |
-| Message scheduling | 2.12.0 | 2 |
-| Cron / repeating schedules | 2.14.0 | 2 config, 2.14 headers |
-| Fast-ingest batch publish | 2.14.0 | 4 |
-| `AckFlowControl`, `$JS.API.CONSUMER.RESET` | 2.14.0 | 4 |
+| Feature | Min server | Min level | Also needs |
+|---|---|---|---|
+| Per-message TTL (`Nats-TTL`), subject delete markers | 2.11.0 | 1 | `allow_msg_ttl` |
+| KV per-key TTL | 2.11.0 | 1 | bucket `markerTTL` |
+| Consumer pause (`pause_until`) | 2.11.0 | 1 | |
+| Priority groups: `overflow`, `pinned_client` | 2.11.0 | 1 | pull consumer, explicit ack |
+| Priority `prioritized` policy | 2.12.0 | 2 | pull consumer, explicit ack |
+| Atomic batch publish | 2.12.0 | 2 | `allow_atomic` |
+| Batch dedup (`Nats-Msg-Id` within a batch) | 2.12.1 | 2 | `allow_atomic` |
+| Counter streams (`Nats-Incr`) | 2.12.0 | 2 | `allow_msg_counter` |
+| Message scheduling (single / delayed) | 2.12.0 | 2 | `allow_msg_schedules` |
+| Cron / repeating schedules | 2.14.0 | 2 | `allow_msg_schedules` |
+| Fast-ingest batch publish | 2.14.0 | 4 | `allow_batched` |
+| `AckFlowControl`, `$JS.API.CONSUMER.RESET` | 2.14.0 | 4 | |
+
+The scheduling rows are the ones people get wrong. The stream CONFIG for scheduling is API
+level 2, but the extra headers that make schedules repeating (`Nats-Schedule-Rollup`,
+`Nats-Schedule-Source`, `Nats-Schedule-Time-Zone`) need a 2.14 SERVER. A 2.12 server accepts
+the stream config and then does not understand the headers, so gate on the server version for
+those, not on the level.
 
 `subject_transforms`, `compression`, `first_seq`, `allow_direct` and
 `discard_new_per_subject` are commonly assumed to be new. They were all present in 2.10.
@@ -91,9 +112,15 @@ Pull consumers only; push consumers error. Ack policy must be explicit. Max one 
 
 ## Atomic batch publish (2.12+)
 
-Headers `Nats-Batch-Id`, `Nats-Batch-Sequence`, `Nats-Batch-Commit`. Genuinely atomic:
-either every message in the batch lands or none does, which maps well onto a transactional
-outbox that must publish several events together.
+Headers `Nats-Batch-Id`, `Nats-Batch-Sequence`, `Nats-Batch-Commit`. Atomic **within one
+stream**: either every message in the batch lands in that stream or none does.
+
+Be clear about what that does not buy you. It is not a distributed transaction, so it cannot
+make a database commit atomic with a publish, and it does not span streams. In a transactional
+outbox it replaces the PUBLISH step only: you still need the outbox table to make the state
+change and the intent-to-publish atomic in your database, and you still need idempotent
+consumers, because the relay can crash after committing the batch and before marking the rows
+sent. What it removes is the partial-publish window where three of five events landed.
 
 Hard limits to design against: **1000 messages per batch, 50 in-flight batches per stream,
 abandoned after 10s of silence.** `Nats-Expected-Last-Msg-Id` is rejected outright. There is
