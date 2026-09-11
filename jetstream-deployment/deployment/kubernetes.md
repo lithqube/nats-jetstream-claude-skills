@@ -12,7 +12,7 @@ helm repo update
 ```yaml
 nats:
   image:
-    tag: "2.10.24"
+    tag: "2.14.6"
     pullPolicy: IfNotPresent
 
   jetstream:

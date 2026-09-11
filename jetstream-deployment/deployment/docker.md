@@ -6,7 +6,7 @@
 # docker-compose.yml
 services:
   nats:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-js", "-m", "8222"]
     ports:
       - "4222:4222"   # client
@@ -28,7 +28,7 @@ docker compose up -d
 # docker-compose.yml
 services:
   nats:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-c", "/etc/nats/nats-server.conf"]
     ports:
       - "4222:4222"
@@ -61,7 +61,7 @@ max_payload: 8MB
 # docker-compose-cluster.yml
 services:
   nats-1:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-c", "/etc/nats/nats.conf", "--name", "nats-1"]
     ports:
       - "4222:4222"
@@ -73,7 +73,7 @@ services:
       - nats-net
 
   nats-2:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-c", "/etc/nats/nats.conf", "--name", "nats-2"]
     ports:
       - "4223:4222"
@@ -85,7 +85,7 @@ services:
       - nats-net
 
   nats-3:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-c", "/etc/nats/nats.conf", "--name", "nats-3"]
     ports:
       - "4224:4222"
@@ -146,7 +146,7 @@ docker run -d --name nats \
   -p 4222:4222 \
   -p 8222:8222 \
   -v nats-data:/data/jetstream \
-  nats:2.10.24 \
+  nats:2.14.6 \
   -js -m 8222 -sd /data/jetstream
 
 # Verify
@@ -161,7 +161,7 @@ NATS server doesn't use environment variables directly, but you can use them in 
 ```yaml
 services:
   nats:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command:
       - "-js"
       - "-m"
@@ -180,7 +180,7 @@ services:
 ```yaml
 services:
   nats:
-    image: nats:2.10.24
+    image: nats:2.14.6
     command: ["-js", "-m", "8222"]
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]

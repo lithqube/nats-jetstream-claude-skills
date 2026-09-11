@@ -10,7 +10,11 @@ Producer ──> Stream (WorkQueue) ──> ├─ Worker B  ──> Pull Consum
                                     └─ Worker C
 ```
 
-Each message is delivered to exactly one worker. Failed messages are retried with backoff up to `MaxDeliver`, then sent to a dead letter stream.
+Each message is delivered to exactly one worker. Failed messages are retried with backoff up to `MaxDeliver`, after which **the server stops redelivering it to that consumer and publishes an advisory**.
+
+There is no dead-letter queue in NATS. Not in any released server, and not in 2.15-RC: `consumer.go` has no `dead_letter` field and no ADR proposes one. `MaxDeliver` without the advisory-consuming machinery below is not "retry then dead-letter", it is "retry then stop, and nothing tells your application".
+
+Be precise about what "stops" means, because it determines what you can still do about it. The message is **not** deleted from the stream: it stays subject to the stream's retention policy, which is exactly why the advisory handler below can fetch it back by sequence. What ends is redelivery to that one consumer. On a `WorkQueuePolicy` stream this is worse than it sounds, since the message remains and no other consumer can take it.
 
 ## Stream Configuration
 
@@ -88,7 +92,95 @@ for {
 
 ## Dead Letter Queue (DLQ)
 
-When a message exceeds `MaxDeliver`, JetStream publishes an advisory to `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.{stream}.{consumer}`. Capture these to implement a DLQ:
+When a message exceeds `MaxDeliver`, JetStream publishes an advisory to `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.{stream}.{consumer}`. You build the DLQ yourself by consuming it.
+
+**Advisories are core NATS, not JetStream.** They are fire-and-forget, so anything published while your subscriber is restarting, redeploying or partitioned is gone permanently. The `nc.Subscribe` below is the simplest illustration, and it is the wrong shape for anything that must not lose a job: it makes the failure path the only ephemeral part of an otherwise durable design.
+
+For production, capture the advisories into a stream and consume THAT durably:
+
+```go
+js.AddStream(&nats.StreamConfig{
+    Name: "JS_ADVISORY",
+    Subjects: []string{
+        "$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.>",
+        "$JS.EVENT.ADVISORY.CONSUMER.MSG_TERMINATED.>",
+    },
+    Retention: nats.LimitsPolicy,
+    MaxAge:    30 * 24 * time.Hour,
+    Storage:   nats.FileStorage,
+})
+```
+
+Then run a durable pull consumer over `JS_ADVISORY`:
+
+```go
+js.AddConsumer("JS_ADVISORY", &nats.ConsumerConfig{
+    Durable:       "dlq_router",
+    AckPolicy:     nats.AckExplicitPolicy,
+    AckWait:       30 * time.Second,
+    MaxDeliver:    5,
+    DeliverPolicy: nats.DeliverAllPolicy,
+})
+
+sub, _ := js.PullSubscribe("", "dlq_router", nats.Bind("JS_ADVISORY", "dlq_router"))
+
+for {
+    msgs, err := sub.Fetch(10, nats.MaxWait(30*time.Second))
+    if err != nil { continue }            // timeout is normal when idle
+
+    for _, m := range msgs {
+        var adv struct {
+            Type       string `json:"type"`
+            Stream     string `json:"stream"`
+            Consumer   string `json:"consumer"`
+            StreamSeq  uint64 `json:"stream_seq"`
+            Deliveries uint64 `json:"deliveries"`
+            Reason     string `json:"reason"`       // terminated only
+        }
+        if err := json.Unmarshal(m.Data, &adv); err != nil {
+            m.Term()                       // unparseable advisory: do not retry forever
+            continue
+        }
+
+        // The advisory carries a sequence, not the message. This works because
+        // MaxDeliver does not remove the message from the stream.
+        raw, err := js.GetMsg(adv.Stream, adv.StreamSeq)
+        if err != nil {
+            // Legitimately gone: aged out of its stream before we got here.
+            // Record the metadata and move on rather than retrying forever.
+            recordLostMessage(adv.Stream, adv.StreamSeq, adv.Type)
+            m.Ack()
+            continue
+        }
+
+        hdr := nats.Header{}
+        hdr.Set("Original-Stream", adv.Stream)
+        hdr.Set("Original-Consumer", adv.Consumer)
+        hdr.Set("Original-Seq", fmt.Sprintf("%d", adv.StreamSeq))
+        hdr.Set("Failure-Reason", adv.Type)        // max_deliver or terminated
+        if adv.Reason != "" {
+            hdr.Set("Term-Reason", adv.Reason)     // only ever set on terminated
+        }
+
+        if _, err := js.PublishMsg(&nats.Msg{
+            Subject: "dlq.tasks.failed", Data: raw.Data, Header: hdr,
+        }); err != nil {
+            m.Nak()                        // republish failed: let it redeliver
+            continue
+        }
+        m.Ack()                            // ack only after the DLQ write succeeded
+    }
+}
+```
+
+Ack ordering is the part worth copying: the advisory is acked only once the DLQ publish has succeeded, so a crash mid-handler redelivers the advisory rather than losing the record.
+
+Two further notes:
+
+- **Do not subscribe to `$JS.EVENT.ADVISORY.>` to catch these.** That is the whole-account firehose, and it includes an API audit advisory the server publishes on *every* JetStream API response, success or failure. Filter to the two subjects you actually want.
+- **Also capture `MSG_TERMINATED`.** It fires on an explicit `msg.Term()` and, unlike `max_deliver`, carries `consumer_seq` and a `reason` field when the client supplied one. The `max_deliver` advisory has **no `consumer_seq`**; assuming symmetry puts a hole in your audit trail.
+
+The illustration below uses a plain subscription for brevity. **It is not the production path** — it loses advisories across restarts and handles only `MAX_DELIVERIES`:
 
 ```go
 // Create a dead letter stream
