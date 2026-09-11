@@ -38,7 +38,7 @@ Step 6: Set up monitoring — recommend metrics, alerts, and advisory subscripti
 
 - Always start diagnosis with `nats stream report` and `nats consumer report`
 - Check `num_ack_pending` first when consumers appear stuck — it's the most common bottleneck
-- Monitor JetStream advisory subjects (`$JS.EVENT.ADVISORY.>`) for real-time operational events
+- Monitor JetStream advisory subjects for real-time operational events, but subscribe to the specific ones you need rather than `$JS.EVENT.ADVISORY.>` — that wildcard is the whole-account firehose and includes an API audit advisory published on every JetStream API response. Advisories are fire-and-forget, so anything you must not miss (max-deliveries, terminated) belongs in a stream you consume durably, not a bare subscription
 - Use `nats server report jetstream` to check cluster-wide JetStream health
 - Set alerts on consumer pending count, not just publish rate
 - Prefer `nats` CLI over raw API calls for operational tasks

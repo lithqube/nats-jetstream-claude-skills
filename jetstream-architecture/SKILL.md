@@ -17,6 +17,7 @@ Read these files when they're relevant to the user's question — don't load all
 
 - `concepts/streams.md` — stream config fields, retention policies, storage types, subject namespaces, mirroring/sourcing. Read when configuring a stream.
 - `concepts/consumers.md` — pull vs push comparison, ack policies, deliver policies, consumer groups, ordered consumers, backoff. Read when designing consumers.
+- `concepts/server-features.md` — which features need which server version, how to detect capability via `api.level`, per-message TTL, priority groups, atomic batch publish, and the 2.12 strict-mode breaking change. Read before recommending any feature newer than 2.10, and whenever a design depends on TTL, prioritised delivery, or multi-message atomicity.
 - `patterns/fanout.md` — fanout pattern with multiple independent consumers, LimitsPolicy vs InterestPolicy, scaling. Read when the user needs multiple services consuming the same events.
 - `patterns/work-queue.md` — work queue with competing consumers, DLQ, deduplication, priority queues. Read when the user needs task distribution or job processing.
 - `examples/go.md` — complete Go examples using nats.go. Read when the user wants Go code.
@@ -44,8 +45,8 @@ Step 6: Provide implementation code — working examples with proper error handl
 - Use pull consumers for worker queues — they allow backpressure and batch processing
 - Use push consumers for real-time event listeners that need immediate delivery
 - Always use `AckExplicit` in production — never rely on implicit acks
-- Set `MaxDeliver` with a dead letter strategy — don't retry forever
-- Use `DuplicateWindow` for publish-side deduplication (default 2 minutes)
+- Set `MaxDeliver` with a dead letter strategy — don't retry forever. NATS has no built-in DLQ, so "dead letter strategy" means consuming the `MAX_DELIVERIES` advisory yourself; `MaxDeliver` alone means "retry then silently drop"
+- Use `DuplicateWindow` for publish-side deduplication (default 2 minutes). Size it against your slowest republish path: a transactional-outbox relay that retries hourly needs hours, not the default, or the dedup that prevents a double-book has already expired
 - Set `Replicas: 3` for production streams — R1 is only for development
 - Prefer `FileStorage` for durability — use `MemoryStorage` only for ephemeral/cache streams
 - Design for idempotent consumers — messages may be redelivered after ack timeout

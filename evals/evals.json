@@ -23,7 +23,7 @@
           "evidence": null
         },
         {
-          "text": "Sets MaxDeliver or mentions dead-letter handling strategy for failed messages",
+          "text": "Sets MaxDeliver AND is correct about what happens at the limit. NATS has no dead-letter queue, so an acceptable answer either consumes the $JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES advisory to build one, or states plainly that exhausted messages are discarded by the server. Claiming MaxDeliver alone routes messages to a dead-letter stream FAILS this assertion.",
           "passed": null,
           "evidence": null
         },

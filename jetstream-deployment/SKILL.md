@@ -44,4 +44,4 @@ Step 6: Validate deployment — health checks, cluster connectivity, JetStream r
 - Configure liveness and readiness probes — NATS supports health monitoring on port 8222
 - Set `connect_retries` in cluster routes for resilient bootstrapping
 - Use gateways for multi-region — not cluster routes across WAN
-- Pin NATS server versions — don't use `latest` tags in production
+- Pin NATS server versions — don't use `latest` tags in production, and check the pin is still a supported line before copying it forward. NATS ships a minor roughly every six months and patches only the latest two lines, so a pin ages into an EOL server quietly: 2.10 took its last patch in May 2025, and 2.11 in April 2026. The examples here pin 2.14.x

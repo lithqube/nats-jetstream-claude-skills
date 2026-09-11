@@ -10,7 +10,9 @@ Producer ──> Stream (WorkQueue) ──> ├─ Worker B  ──> Pull Consum
                                     └─ Worker C
 ```
 
-Each message is delivered to exactly one worker. Failed messages are retried with backoff up to `MaxDeliver`, then sent to a dead letter stream.
+Each message is delivered to exactly one worker. Failed messages are retried with backoff up to `MaxDeliver`, after which **the server discards the message and publishes an advisory**.
+
+There is no dead-letter queue in NATS. Not in any released server, and not in 2.15-RC: `consumer.go` has no `dead_letter` field and no ADR proposes one. `MaxDeliver` without the advisory-consuming machinery below is not "retry then dead-letter", it is "retry then silently drop".
 
 ## Stream Configuration
 
@@ -88,7 +90,31 @@ for {
 
 ## Dead Letter Queue (DLQ)
 
-When a message exceeds `MaxDeliver`, JetStream publishes an advisory to `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.{stream}.{consumer}`. Capture these to implement a DLQ:
+When a message exceeds `MaxDeliver`, JetStream publishes an advisory to `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.{stream}.{consumer}`. You build the DLQ yourself by consuming it.
+
+**Advisories are core NATS, not JetStream.** They are fire-and-forget, so anything published while your subscriber is restarting, redeploying or partitioned is gone permanently. The `nc.Subscribe` below is the simplest illustration, and it is the wrong shape for anything that must not lose a job: it makes the failure path the only ephemeral part of an otherwise durable design.
+
+For production, capture the advisories into a stream and consume THAT durably:
+
+```go
+js.AddStream(&nats.StreamConfig{
+    Name: "JS_ADVISORY",
+    Subjects: []string{
+        "$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.>",
+        "$JS.EVENT.ADVISORY.CONSUMER.MSG_TERMINATED.>",
+    },
+    Retention: nats.LimitsPolicy,
+    MaxAge:    30 * 24 * time.Hour,
+    Storage:   nats.FileStorage,
+})
+```
+
+Then run a durable pull consumer over `JS_ADVISORY` with the handler body shown below. Two further notes:
+
+- **Do not subscribe to `$JS.EVENT.ADVISORY.>` to catch these.** That is the whole-account firehose, and it includes an API audit advisory the server publishes on *every* JetStream API response, success or failure. Filter to the two subjects you actually want.
+- **Also capture `MSG_TERMINATED`.** It fires on an explicit `msg.Term()` and, unlike `max_deliver`, carries `consumer_seq` and a `reason` field when the client supplied one. The `max_deliver` advisory has **no `consumer_seq`**; assuming symmetry puts a hole in your audit trail.
+
+The illustration below uses a plain subscription for brevity:
 
 ```go
 // Create a dead letter stream
