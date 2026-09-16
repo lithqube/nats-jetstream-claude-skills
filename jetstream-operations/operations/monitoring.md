@@ -144,6 +144,13 @@ nc.Subscribe("$JS.EVENT.ADVISORY.STREAM.QUORUM_LOST.>", func(msg *nats.Msg) {
 })
 ```
 
+### Alerting pitfalls (from production)
+
+- **A monitor that cannot report "fine" reports nothing.** A classic failure: an alerting task calls `consumer info` on a durable that was later deleted; `consumer info` on a missing durable **throws**, the catch block treats the error as "a problem", and the task now alerts on every run — forever, and indistinguishable from a real backlog. Make "consumer/stream not found" a distinct, benign branch (log and skip, or alert that the *monitor's target* is gone), never fold it into the backlog path.
+- **Alert on the pending count, not just publish rate.** Rising `num_pending` / `num_ack_pending` on a consumer is the early signal of lag or a stuck/unbound consumer (see the immutable-config failure in troubleshooting); publish rate looks healthy right up until the queue overflows.
+- **Rate-limit alerts and give them a cooldown**, but make sure a genuinely stuck condition can still re-fire after the cooldown — a one-shot alert that a flapping condition silences is as bad as no alert.
+- **Watch DLQ depth as a first-class signal.** If you built an advisory-capture DLQ stream, alert when its message count is `> 0` — a dead-lettered message is a job that silently stopped, and nothing else will tell you.
+
 ## Grafana Dashboard
 
 ### Recommended Panels

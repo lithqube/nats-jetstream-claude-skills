@@ -1,0 +1,48 @@
+{
+  "run_id": "eval-1-without_skill",
+  "expectations": [
+    {
+      "text": "Configures the module via the nats: key in nuxt.config",
+      "passed": false,
+      "evidence": "Sidesteps the module; hand-rolls a raw @nats-io/nats client in server/utils/nats.ts + a startup plugin"
+    },
+    {
+      "text": "Env-var injected auth (NUXT_NATS_USER_JWT + NUXT_NATS_NKEY_SEED)",
+      "passed": true,
+      "evidence": "Uses runtimeConfig + env with jwtAuthenticator; keeps secrets out of the public block"
+    },
+    {
+      "text": "Publishes with jsPublish and sets msgId for dedup",
+      "passed": false,
+      "evidence": "Uses raw js.publish (not the module's jsPublish); does set msgID"
+    },
+    {
+      "text": "NatsEvents interface augmentation for typed subjects",
+      "passed": false,
+      "evidence": "Uses a shared interface + JSONCodec<OrderCreated>() (legacy codec, removed in v3) instead of NatsEvents"
+    },
+    {
+      "text": "Publishes server-side (server/api or server/**)",
+      "passed": true,
+      "evidence": "server/api/orders.post.ts"
+    },
+    {
+      "text": "Passes all cluster nodes and/or provision:'never'",
+      "passed": true,
+      "evidence": "Passes all three node URLs to the servers array"
+    }
+  ],
+  "passed_count": 3,
+  "total_count": 6,
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 3,
+    "failed": 3,
+    "total": 6
+  },
+  "timing": {
+    "total_tokens": 67920,
+    "duration_ms": 85520,
+    "total_duration_seconds": 85.5
+  }
+}

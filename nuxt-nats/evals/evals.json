@@ -1,0 +1,45 @@
+{
+  "skill_name": "nuxt-nats",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm adding NATS to my Nuxt 4 app using the nuxt-nats module. I need to connect to a 3-node production cluster with JWT+NKey auth (secrets come from env, not the repo), and publish an 'orders.created' event from a server API route with type safety and deduplication. Show me the nuxt.config setup and the publish code.",
+      "expected_output": "nuxt.config nats: block with servers + provision:'never', auth via env (NUXT_NATS_USER_JWT + NUXT_NATS_NKEY_SEED), a server/api route using jsPublish('orders.created', data, { msgId }), and a NatsEvents .d.ts augmentation for type safety. Notes passing all cluster nodes.",
+      "files": [],
+      "assertions": [
+        {"text": "Configures the module via the nats: key in nuxt.config (not raw @nats-io client setup)", "passed": null, "evidence": null},
+        {"text": "Uses env-var injected auth (NUXT_NATS_USER_JWT + NUXT_NATS_NKEY_SEED) rather than hardcoding creds in config", "passed": null, "evidence": null},
+        {"text": "Publishes with jsPublish and sets msgId for dedup (Nats-Msg-Id)", "passed": null, "evidence": null},
+        {"text": "Adds NatsEvents interface augmentation (import type {} from 'nuxt-nats') for typed subjects", "passed": null, "evidence": null},
+        {"text": "Publishes from server-side (server/api or server/**), not a Vue component/composable", "passed": null, "evidence": null},
+        {"text": "Passes all cluster nodes (comma-separated NUXT_NATS_SERVERS) and/or uses provision:'never' for prod", "passed": null, "evidence": null}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In my nuxt-nats app I have a durable pull consumer for 'orders.created' but it's not receiving anything in production even though the logs show NATS connected fine. It also needs to retry transient failures and dead-letter poison messages. What am I missing, and what should the consumer look like?",
+      "expected_output": "Diagnose the missing NUXT_NATS_WORKERS=true worker gate (and/or consumer declared in server/workers instead of server/plugins). Provide a defineNatsConsumer in a server plugin with nak(delay) for transient / term for poison, and defineDeadLetterConsumer for the DLQ (advisory capture, since NATS has no built-in DLQ).",
+      "files": [],
+      "assertions": [
+        {"text": "Identifies the NUXT_NATS_WORKERS=true worker gate as the reason consumers don't run (or server/plugins vs server/workers registration)", "passed": null, "evidence": null},
+        {"text": "Uses defineNatsConsumer registered in a Nitro server plugin", "passed": null, "evidence": null},
+        {"text": "Distinguishes transient (nak with delay) from poison (term) handling — and warns bare nak() burns deliveries", "passed": null, "evidence": null},
+        {"text": "States NATS has no built-in DLQ; max_deliver = retry then stop (not auto-route to a DLQ)", "passed": null, "evidence": null},
+        {"text": "Uses defineDeadLetterConsumer (or advisory-capture into a stream) for dead-lettering, not a core NATS subscription", "passed": null, "evidence": null}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to expose my Nuxt app as a discoverable AI agent on the NATS bus using nuxt-nats — it should stream tokens back to the caller and ask the user to confirm before doing anything destructive. Show me the agent code and how another service would call it.",
+      "expected_output": "A defineNatsAgent in a server plugin with an onPrompt handler that streams via response.send and confirms via response.ask(prompt,{timeoutMs}); notes the NUXT_NATS_WORKERS gate; and a caller using useAgents().discover() + agent.prompt() iterating typed chunks.",
+      "files": [],
+      "assertions": [
+        {"text": "Uses defineNatsAgent with an onPrompt(envelope, response) handler", "passed": null, "evidence": null},
+        {"text": "Streams tokens with repeated response.send(...) calls", "passed": null, "evidence": null},
+        {"text": "Implements human-in-the-loop confirmation with response.ask(prompt, { timeoutMs }) (NOT response.query)", "passed": null, "evidence": null},
+        {"text": "Notes the agent runs only when NUXT_NATS_WORKERS=true", "passed": null, "evidence": null},
+        {"text": "Shows a caller using useAgents().discover() then agent.prompt() iterating chunks", "passed": null, "evidence": null}
+      ]
+    }
+  ]
+}

@@ -56,11 +56,13 @@ service.onPrompt(async (envelope, response) => {
 
 ### Asking the caller a question mid-stream (human-in-the-loop)
 
+The host emits a mid-stream question with `response.ask(prompt, { timeoutMs })` — it sends a `query` chunk and resolves with the caller's single reply. (The chunk the *caller* receives has `type: "query"`; the *host* method that emits it is `ask`, not `query`.)
+
 ```ts
 service.onPrompt(async (envelope, response) => {
   if (isDestructive(envelope.prompt)) {
-    const ok = await response.query("Confirm deletion of 200 files? (yes/no)");
-    if (ok.trim().toLowerCase() !== "yes") {
+    const answer = await response.ask("Confirm deletion of 200 files? (yes/no)", { timeoutMs: 15_000 });
+    if (answer.trim().toLowerCase() !== "yes") {
       await response.send("Aborted.");
       return;
     }
@@ -68,6 +70,8 @@ service.onPrompt(async (envelope, response) => {
   await response.send(doWork(envelope.prompt));
 });
 ```
+
+> If the caller never answers, `ask` rejects on timeout — default-deny (treat it as "no") for destructive actions rather than letting the handler hang.
 
 ## Caller: discover and prompt
 

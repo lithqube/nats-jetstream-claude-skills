@@ -12,10 +12,11 @@ Design JetStream streams, subjects, and consumers. Covers:
 
 - Stream configuration (retention policies, storage types, limits, discard policies)
 - Consumer design (pull vs push, ack policies, deliver policies, backoff)
-- Subject namespace design with wildcards
-- Messaging patterns: fanout, work queues, priority queues, dead letter queues
-- Code examples in **Go**, **JavaScript**, and **Python** with error handling
-- Idempotent publishing and exactly-once processing strategies
+- Subject namespace design: wildcards, the `>` vs `*` capture pitfall, and subject-as-contract conventions (verb tense, no topology/version in subjects)
+- Messaging patterns: fanout, work queues, priority queues, and dead-letter handling via advisory capture — NATS has **no** built-in DLQ (`MaxDeliver` is retry-then-stop)
+- Server feature-gating by `api.level` and the version support policy (per-message TTL, priority groups, atomic batches, message scheduling, 2.12 strict mode)
+- Code examples in **Go** (`nats.go`), **JavaScript/TypeScript** (modular `@nats-io/*` v3), and **Python** (`nats-py`) with error handling
+- Idempotent publishing and the honest exactly-once: at-least-once delivery + an inbox/dedup table
 
 ### jetstream-deployment
 
@@ -53,6 +54,20 @@ Build AI agents that discover and prompt each other over NATS using the **Synadi
 
 > Built on the NATS Services API (micro), not core JetStream — JetStream/KV are the optional durable-state layer behind the fabric. Cross-referenced from all three JetStream skills.
 
+### nuxt-nats
+
+Use the **`nuxt-nats` Nuxt 4 / Nitro module** to talk to NATS JetStream from a Nuxt app. Covers:
+
+- Module configuration (`nats:` key), env-var overrides, and the auth priority chain (JWT+NKey → JWT → NKey → token → user/pass)
+- Publishing with `jsPublish` (typed via `NatsEvents`, `msgId` dedup, retry) and `corePublish`
+- Durable pull consumers with `defineNatsConsumer`, the `NUXT_NATS_WORKERS` worker gate, and ack/nak/term discipline
+- Dead-letter handling with `defineDeadLetterConsumer` (advisory capture — NATS has no built-in DLQ) and SSE via `useEphemeralConsumer`
+- KV / Object Store (`useKV` / `useObj`) with the real unit/stream gotchas
+- Agent fabric (`defineNatsAgent` / `useAgents`) on the Synadia Agent Protocol
+- Production gotchas: the SSR/Nitro lifecycle race, reconnect-storm status semantics, Nitro externals, provisioning races, and Testcontainers testing
+
+> Distilled from lithqube's `nuxt-nats` module and two production deployments. Uses the modular `@nats-io/*` v3 client throughout.
+
 ## Installation
 
 Copy the skill directories into your project's `.claude/skills/` directory:
@@ -64,6 +79,7 @@ cp -r jetstream-architecture .claude/skills/
 cp -r jetstream-deployment .claude/skills/
 cp -r jetstream-operations .claude/skills/
 cp -r nats-agent-fabric .claude/skills/
+cp -r nuxt-nats .claude/skills/
 ```
 
 ## File Structure
@@ -72,14 +88,15 @@ cp -r nats-agent-fabric .claude/skills/
 jetstream-architecture/
   SKILL.md              # Skill definition and triggers
   concepts/
-    streams.md          # Stream configuration reference
+    streams.md          # Stream config, subject-design-as-contract, > vs * capture
     consumers.md        # Consumer types and configuration
+    server-features.md  # Feature gating by api.level, version support policy, strict mode
   patterns/
     fanout.md           # Fanout pattern with examples
-    work-queue.md       # Work queue with DLQ and idempotency
+    work-queue.md       # Work queue, advisory-capture DLQ, exactly-once inbox table
   examples/
     go.md               # Go examples (nats.go)
-    javascript.md       # JavaScript examples (nats.js)
+    javascript.md       # JS/TS examples (modular @nats-io/* v3 client)
     python.md           # Python examples (nats-py)
 
 jetstream-deployment/
@@ -110,7 +127,23 @@ nats-agent-fabric/
     typescript.md       # @synadia-ai/agents + @synadia-ai/agent-service
     python.md           # synadia-ai-agents + synadia-ai-agent-service
     protocol-go.md      # Protocol-compliant agent in Go over nats.go micro
+
+nuxt-nats/
+  SKILL.md              # Module overview, config quickstart, workflow, principles
+  references/
+    configuration.md    # nats: options, env vars, auth chain, provisioning stance
+    publishing.md       # jsPublish/corePublish, typed NatsEvents, msgId dedup, outbox
+    consumers.md        # defineNatsConsumer, worker gate, DLQ, ephemeral (SSE)
+    kv-object.md        # useKV/useObj + unit and ReadableStream gotchas
+    agents.md           # defineNatsAgent/useAgents on the Synadia Agent Protocol
+    gotchas.md          # SSR lifecycle race, reconnect storm, externals, testing
 ```
+
+## Evaluations
+
+Each skill is benchmarked with the skill-creator eval loop: realistic test prompts run **with the skill vs. a no-skill baseline**, graded against objective assertions. Prompts live in `evals/evals.json` (and per-skill `*/evals/evals.json`); graded runs, timing, and `benchmark.json`/`benchmark.md` land in the matching `*-workspace/` directory.
+
+Recent results (with skill → baseline pass rate): `nats-agent-fabric` 100% → 43%, `nuxt-nats` 100% → 30% — baselines typically reach for the legacy `nats` package or hand-roll the raw client and miss the module/protocol specifics the skills encode.
 
 ## License
 

@@ -1,0 +1,43 @@
+{
+  "run_id": "eval-3-with_skill",
+  "expectations": [
+    {
+      "text": "Uses defineNatsAgent with an onPrompt(envelope, response) handler",
+      "passed": true,
+      "evidence": "defineNatsAgent in server/plugins/support-agent.ts with onPrompt"
+    },
+    {
+      "text": "Streams tokens with repeated response.send() calls",
+      "passed": true,
+      "evidence": "streams via repeated response.send()"
+    },
+    {
+      "text": "HITL via response.ask(prompt,{timeoutMs}) not response.query",
+      "passed": true,
+      "evidence": "response.ask with timeoutMs; explicitly notes there is no response.query(); default-deny on timeout"
+    },
+    {
+      "text": "Notes the agent runs only when NUXT_NATS_WORKERS=true",
+      "passed": true,
+      "evidence": "States the worker gate is mandatory for the agent to register"
+    },
+    {
+      "text": "Caller uses useAgents().discover() then agent.prompt()",
+      "passed": true,
+      "evidence": "useAgents().discover() + agent.prompt() iterating typed chunks"
+    }
+  ],
+  "passed_count": 5,
+  "total_count": 5,
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 76373,
+    "duration_ms": 104124,
+    "total_duration_seconds": 104.1
+  }
+}
