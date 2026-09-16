@@ -1,0 +1,43 @@
+{
+  "run_id": "eval-3-without_skill",
+  "expectations": [
+    {
+      "text": "Uses defineNatsAgent with an onPrompt(envelope, response) handler",
+      "passed": false,
+      "evidence": "Uses raw nc.services.add (Services API), not defineNatsAgent"
+    },
+    {
+      "text": "Streams tokens with repeated response.send() calls",
+      "passed": false,
+      "evidence": "Publishes token chunks to a manual reply inbox with a done/error sentinel"
+    },
+    {
+      "text": "HITL via response.ask(prompt,{timeoutMs}) not response.query",
+      "passed": false,
+      "evidence": "Hand-rolls HITL via nc.request to a confirm.<sessionId> subject; no response.ask"
+    },
+    {
+      "text": "Notes the agent runs only when NUXT_NATS_WORKERS=true",
+      "passed": false,
+      "evidence": "No mention of the worker gate"
+    },
+    {
+      "text": "Caller uses useAgents().discover() then agent.prompt()",
+      "passed": false,
+      "evidence": "Raw $SRV discovery + request/reply; no useAgents()"
+    }
+  ],
+  "passed_count": 0,
+  "total_count": 5,
+  "summary": {
+    "pass_rate": 0.0,
+    "passed": 0,
+    "failed": 5,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 68298,
+    "duration_ms": 90931,
+    "total_duration_seconds": 90.9
+  }
+}

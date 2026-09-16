@@ -1,0 +1,43 @@
+{
+  "run_id": "eval-2-without_skill",
+  "expectations": [
+    {
+      "text": "Identifies the NUXT_NATS_WORKERS gate (or server/plugins vs server/workers)",
+      "passed": false,
+      "evidence": "Diagnoses serverless/persistent-process (a real adjacent cause) but not the module's NUXT_NATS_WORKERS gate or server/plugins-vs-workers"
+    },
+    {
+      "text": "Uses defineNatsConsumer in a Nitro server plugin",
+      "passed": false,
+      "evidence": "Uses raw nats.js v2 pull_subscribe, not defineNatsConsumer"
+    },
+    {
+      "text": "Distinguishes transient nak(delay) from poison term; warns bare nak burns deliveries",
+      "passed": true,
+      "evidence": "Distinguishes transient (nak/backoff) from poison (term); shows working()"
+    },
+    {
+      "text": "States NATS has no built-in DLQ; max_deliver = retry then stop",
+      "passed": true,
+      "evidence": "'JetStream has no built-in dead-letter queue. There is no --dlq flag.'"
+    },
+    {
+      "text": "Uses defineDeadLetterConsumer / advisory capture, not a core sub",
+      "passed": false,
+      "evidence": "Uses a manual copy-to-DLQ-then-term pattern; no advisory capture and no defineDeadLetterConsumer"
+    }
+  ],
+  "passed_count": 2,
+  "total_count": 5,
+  "summary": {
+    "pass_rate": 0.4,
+    "passed": 2,
+    "failed": 3,
+    "total": 5
+  },
+  "timing": {
+    "total_tokens": 70562,
+    "duration_ms": 124400,
+    "total_duration_seconds": 124.4
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "metadata": {
+    "skill_name": "nuxt-nats",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-16T16:47:33Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 69.7,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Configures the module via the nats: key in nuxt.config",
+          "passed": true,
+          "evidence": "nats: block with servers + provision:'never'; module config, not raw @nats-io client"
+        },
+        {
+          "text": "Env-var injected auth (NUXT_NATS_USER_JWT + NUXT_NATS_NKEY_SEED)",
+          "passed": true,
+          "evidence": "env-injected JWT+NKey; explains the auth priority chain; secrets out of repo"
+        },
+        {
+          "text": "Publishes with jsPublish and sets msgId for dedup",
+          "passed": true,
+          "evidence": "jsPublish('orders.created', data, { msgId }); reads ack.duplicate"
+        },
+        {
+          "text": "NatsEvents interface augmentation for typed subjects",
+          "passed": true,
+          "evidence": "server/nats-events.d.ts with the required import type {} from 'nuxt-nats' line"
+        },
+        {
+          "text": "Publishes server-side (server/api or server/**)",
+          "passed": true,
+          "evidence": "server/api/orders.post.ts"
+        },
+        {
+          "text": "Passes all cluster nodes and/or provision:'never'",
+          "passed": true,
+          "evidence": "NUXT_NATS_SERVERS all three nodes; provision:'never' for prod"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 90.9,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies the NUXT_NATS_WORKERS gate (or server/plugins vs server/workers)",
+          "passed": true,
+          "evidence": "Names NUXT_NATS_WORKERS=true as the primary cause; also server/plugins vs server/workers"
+        },
+        {
+          "text": "Uses defineNatsConsumer in a Nitro server plugin",
+          "passed": true,
+          "evidence": "defineNatsConsumer in server/plugins/**"
+        },
+        {
+          "text": "Distinguishes transient nak(delay) from poison term; warns bare nak burns deliveries",
+          "passed": true,
+          "evidence": "msg.nak(delayMs) vs msg.term(reason) vs msg.ack(); bare-nak warning"
+        },
+        {
+          "text": "States NATS has no built-in DLQ; max_deliver = retry then stop",
+          "passed": true,
+          "evidence": "Explicit: no DLQ, maxDeliver = retry then stop, only an advisory emitted"
+        },
+        {
+          "text": "Uses defineDeadLetterConsumer / advisory capture, not a core sub",
+          "passed": true,
+          "evidence": "defineDeadLetterConsumer capturing MAX_DELIVERIES/MSG_TERMINATED into a durable stream; not the $JS.EVENT.ADVISORY.> firehose"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 104.1,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses defineNatsAgent with an onPrompt(envelope, response) handler",
+          "passed": true,
+          "evidence": "defineNatsAgent in server/plugins/support-agent.ts with onPrompt"
+        },
+        {
+          "text": "Streams tokens with repeated response.send() calls",
+          "passed": true,
+          "evidence": "streams via repeated response.send()"
+        },
+        {
+          "text": "HITL via response.ask(prompt,{timeoutMs}) not response.query",
+          "passed": true,
+          "evidence": "response.ask with timeoutMs; explicitly notes there is no response.query(); default-deny on timeout"
+        },
+        {
+          "text": "Notes the agent runs only when NUXT_NATS_WORKERS=true",
+          "passed": true,
+          "evidence": "States the worker gate is mandatory for the agent to register"
+        },
+        {
+          "text": "Caller uses useAgents().discover() then agent.prompt()",
+          "passed": true,
+          "evidence": "useAgents().discover() + agent.prompt() iterating typed chunks"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 85.5,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Configures the module via the nats: key in nuxt.config",
+          "passed": false,
+          "evidence": "Sidesteps the module; hand-rolls a raw @nats-io/nats client in server/utils/nats.ts + a startup plugin"
+        },
+        {
+          "text": "Env-var injected auth (NUXT_NATS_USER_JWT + NUXT_NATS_NKEY_SEED)",
+          "passed": true,
+          "evidence": "Uses runtimeConfig + env with jwtAuthenticator; keeps secrets out of the public block"
+        },
+        {
+          "text": "Publishes with jsPublish and sets msgId for dedup",
+          "passed": false,
+          "evidence": "Uses raw js.publish (not the module's jsPublish); does set msgID"
+        },
+        {
+          "text": "NatsEvents interface augmentation for typed subjects",
+          "passed": false,
+          "evidence": "Uses a shared interface + JSONCodec<OrderCreated>() (legacy codec, removed in v3) instead of NatsEvents"
+        },
+        {
+          "text": "Publishes server-side (server/api or server/**)",
+          "passed": true,
+          "evidence": "server/api/orders.post.ts"
+        },
+        {
+          "text": "Passes all cluster nodes and/or provision:'never'",
+          "passed": true,
+          "evidence": "Passes all three node URLs to the servers array"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 124.4,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies the NUXT_NATS_WORKERS gate (or server/plugins vs server/workers)",
+          "passed": false,
+          "evidence": "Diagnoses serverless/persistent-process (a real adjacent cause) but not the module's NUXT_NATS_WORKERS gate or server/plugins-vs-workers"
+        },
+        {
+          "text": "Uses defineNatsConsumer in a Nitro server plugin",
+          "passed": false,
+          "evidence": "Uses raw nats.js v2 pull_subscribe, not defineNatsConsumer"
+        },
+        {
+          "text": "Distinguishes transient nak(delay) from poison term; warns bare nak burns deliveries",
+          "passed": true,
+          "evidence": "Distinguishes transient (nak/backoff) from poison (term); shows working()"
+        },
+        {
+          "text": "States NATS has no built-in DLQ; max_deliver = retry then stop",
+          "passed": true,
+          "evidence": "'JetStream has no built-in dead-letter queue. There is no --dlq flag.'"
+        },
+        {
+          "text": "Uses defineDeadLetterConsumer / advisory capture, not a core sub",
+          "passed": false,
+          "evidence": "Uses a manual copy-to-DLQ-then-term pattern; no advisory capture and no defineDeadLetterConsumer"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 5,
+        "time_seconds": 90.9,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses defineNatsAgent with an onPrompt(envelope, response) handler",
+          "passed": false,
+          "evidence": "Uses raw nc.services.add (Services API), not defineNatsAgent"
+        },
+        {
+          "text": "Streams tokens with repeated response.send() calls",
+          "passed": false,
+          "evidence": "Publishes token chunks to a manual reply inbox with a done/error sentinel"
+        },
+        {
+          "text": "HITL via response.ask(prompt,{timeoutMs}) not response.query",
+          "passed": false,
+          "evidence": "Hand-rolls HITL via nc.request to a confirm.<sessionId> subject; no response.ask"
+        },
+        {
+          "text": "Notes the agent runs only when NUXT_NATS_WORKERS=true",
+          "passed": false,
+          "evidence": "No mention of the worker gate"
+        },
+        {
+          "text": "Caller uses useAgents().discover() then agent.prompt()",
+          "passed": false,
+          "evidence": "Raw $SRV discovery + request/reply; no useAgents()"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 88.2333,
+        "stddev": 17.3543,
+        "min": 69.7,
+        "max": 104.1
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.3,
+        "stddev": 0.2646,
+        "min": 0.0,
+        "max": 0.5
+      },
+      "time_seconds": {
+        "mean": 100.2667,
+        "stddev": 21.0738,
+        "min": 85.5,
+        "max": 124.4
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.70",
+      "time_seconds": "-12.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}
