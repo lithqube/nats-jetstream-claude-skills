@@ -12,10 +12,11 @@ Design JetStream streams, subjects, and consumers. Covers:
 
 - Stream configuration (retention policies, storage types, limits, discard policies)
 - Consumer design (pull vs push, ack policies, deliver policies, backoff)
-- Subject namespace design with wildcards
-- Messaging patterns: fanout, work queues, priority queues, dead letter queues
-- Code examples in **Go**, **JavaScript**, and **Python** with error handling
-- Idempotent publishing and exactly-once processing strategies
+- Subject namespace design: wildcards, the `>` vs `*` capture pitfall, and subject-as-contract conventions (verb tense, no topology/version in subjects)
+- Messaging patterns: fanout, work queues, priority queues, and dead-letter handling via advisory capture — NATS has **no** built-in DLQ (`MaxDeliver` is retry-then-stop)
+- Server feature-gating by `api.level` and the version support policy (per-message TTL, priority groups, atomic batches, message scheduling, 2.12 strict mode)
+- Code examples in **Go** (`nats.go`), **JavaScript/TypeScript** (modular `@nats-io/*` v3), and **Python** (`nats-py`) with error handling
+- Idempotent publishing and the honest exactly-once: at-least-once delivery + an inbox/dedup table
 
 ### jetstream-deployment
 
@@ -87,14 +88,15 @@ cp -r nuxt-nats .claude/skills/
 jetstream-architecture/
   SKILL.md              # Skill definition and triggers
   concepts/
-    streams.md          # Stream configuration reference
+    streams.md          # Stream config, subject-design-as-contract, > vs * capture
     consumers.md        # Consumer types and configuration
+    server-features.md  # Feature gating by api.level, version support policy, strict mode
   patterns/
     fanout.md           # Fanout pattern with examples
-    work-queue.md       # Work queue with DLQ and idempotency
+    work-queue.md       # Work queue, advisory-capture DLQ, exactly-once inbox table
   examples/
     go.md               # Go examples (nats.go)
-    javascript.md       # JavaScript examples (nats.js)
+    javascript.md       # JS/TS examples (modular @nats-io/* v3 client)
     python.md           # Python examples (nats-py)
 
 jetstream-deployment/
@@ -136,6 +138,12 @@ nuxt-nats/
     agents.md           # defineNatsAgent/useAgents on the Synadia Agent Protocol
     gotchas.md          # SSR lifecycle race, reconnect storm, externals, testing
 ```
+
+## Evaluations
+
+Each skill is benchmarked with the skill-creator eval loop: realistic test prompts run **with the skill vs. a no-skill baseline**, graded against objective assertions. Prompts live in `evals/evals.json` (and per-skill `*/evals/evals.json`); graded runs, timing, and `benchmark.json`/`benchmark.md` land in the matching `*-workspace/` directory.
+
+Recent results (with skill → baseline pass rate): `nats-agent-fabric` 100% → 43%, `nuxt-nats` 100% → 30% — baselines typically reach for the legacy `nats` package or hand-roll the raw client and miss the module/protocol specifics the skills encode.
 
 ## License
 
