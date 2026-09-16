@@ -204,6 +204,23 @@ nc, _ := nats.Connect("nats://localhost:4222",
 )
 ```
 
+**With JWT accounts, JetStream must be enabled per account — this is the #1 confusing failure.** A fresh account has JetStream *off*, and a client then gets:
+
+```
+nats: JetStream not enabled for account
+```
+
+which reads like a **server** misconfiguration and is not one — the server has JetStream on, the *account* doesn't. Grant the account JetStream limits explicitly:
+
+```bash
+nsc edit account OrderService --js-mem-storage 2G --js-disk-storage 40G
+nsc push -a OrderService        # push the updated account JWT to the resolver
+```
+
+Two more JWT-resolver traps that surface as fatal boot errors, not warnings:
+- **The system account (`SYS`) must be preloaded** in the resolver (or reachable), or the server exits with `account missing`. With a MEMORY resolver, `resolver_preload` both the SYS and app account JWTs.
+- **Operational/admin creds need `$JS.API.>`** in their permissions, or `nats` CLI JetStream commands silently return nothing under that user.
+
 ## Authorization
 
 ### Subject-Level Permissions

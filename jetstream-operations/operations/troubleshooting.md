@@ -104,6 +104,33 @@ msgs, _ := sub.Fetch(100, nats.MaxWait(5*time.Second))
 nats consumer edit ORDERS order-processor --ack-wait=120s
 ```
 
+## Consumer Won't Start After a Config Change
+
+### Symptom: deploy fails, or the consumer silently stops receiving
+
+```
+consumer name already in use with different configuration
+# or, more cryptically:
+configuration requests deliver policy to be 2, but consumer's value is 0
+```
+
+A durable consumer's core config — `AckPolicy`, `DeliverPolicy`, `FilterSubject(s)`, `ack_wait` in some client versions — is **immutable server-side state**. When your code (or IaC) creates a durable that already exists with different settings, JetStream rejects the create. The old durable keeps holding the subject and its `Num Pending` grows unbounded while nothing consumes — so this reads like "consumer fell behind" but is really "consumer never bound."
+
+This is one of the most common recurring production failures. It bites especially hard with a wrapper that *binds* an existing durable rather than reconciling it: the app's declared filter/ack settings are never pushed, so config and broker drift silently until the day someone changes both.
+
+**Fix — delete and recreate** (there is no in-place change for these fields):
+
+```bash
+nats consumer rm ORDERS order-processor -f   # note: -f, the CLI does not accept --force here
+# then redeploy / re-run your provisioner so the durable is recreated with the new config
+```
+
+**Prevent it:** keep durable config in one authoritative place (an idempotent `streams.sh` or Helm), and add an integration test against a real broker that asserts the live consumer's config equals the declared one. Config that lives in two places (app config + provisioner) drifts invisibly.
+
+### Related: "must use pull subscribe to bind to pull based consumer"
+
+You get this when two things disagree about the consumer *type*. A common cause: one component (e.g. a connector like Benthos/Bento) auto-creates the durable as a **push** consumer, and another binds it with `pull_subscribe`. Pick one type per durable; if a connector owns a durable, don't also provision it as pull.
+
 ## Stream Full
 
 ### Symptom: Publish returns error
@@ -220,6 +247,25 @@ nc, _ := nats.Connect(url,
 ```
 
 After reconnection, JetStream pull consumers resume automatically on next `Fetch()`. Push consumers resubscribe automatically if using durable names.
+
+### Symptom: works in staging, crashes connecting to the production cluster
+
+```
+nats: Port could not be cast to integer value as '4222,nats-2:4222,nats-3'
+```
+
+The client is being handed **all cluster nodes as one comma-joined string in a single list slot** instead of one entry per node. A single-node staging environment has only one URL, so the bug is invisible there and only appears against the multi-node production cluster — a nasty "worked in staging" failure. Split the server list into separate entries:
+
+```go
+// WRONG: one element containing commas
+nats.Connect("nats://nats-1:4222,nats-2:4222,nats-3:4222") // ok — Connect parses this string
+
+// but in code that builds a LIST (e.g. from an env var), split it:
+servers := strings.Split(os.Getenv("NATS_SERVERS"), ",")   // []string{"nats://nats-1:4222", ...}
+nats.Connect(strings.Join(servers, ","))
+```
+
+In clients that take an array (nats-py `servers=[...]`, the JS client's `servers`), pass a real array of one URL per node — never a single element with commas in it. **Make staging a (small) cluster too**, so this surfaces before production.
 
 ## Common nats CLI Diagnostic Commands
 

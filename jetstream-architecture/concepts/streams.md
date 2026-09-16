@@ -91,6 +91,8 @@ Use hierarchical subjects with dot-separated tokens. Wildcards enable flexible c
 - `*` matches exactly one token: `orders.*` matches `orders.created` but not `orders.us.created`
 - `>` matches one or more tokens: `orders.>` matches `orders.created` and `orders.us.created`
 
+**Capture with `>`, not `*`, unless you truly mean one token.** A stream whose subject is `orders.*` silently does **not** capture `orders.us.created` — the publish still succeeds (it goes nowhere in JetStream), so the producer's outbox row or retry loop spins forever with no error. This is a common, quiet production bug; when in doubt, a stream should own `domain.>`.
+
 ### Recommended patterns
 
 ```
@@ -99,14 +101,18 @@ Use hierarchical subjects with dot-separated tokens. Wildcards enable flexible c
   orders.updated
   orders.cancelled
 
-{domain}.{region}.{entity}.{event}
-  orders.us-east.items.created
-  orders.eu-west.items.shipped
-
-{service}.{version}.{action}
-  payments.v1.charge
-  payments.v1.refund
+{scope}.{scope_id}.{aggregate}.{event}     // tenant/partition as a LOGICAL token
+  tenant.acme.orders.created
+  tenant.globex.orders.shipped
 ```
+
+### Subject design is a contract (production conventions)
+
+Subjects are baked into stream config, so treat their shape as an interface that is expensive to change:
+
+- **Verb tense carries meaning.** Past tense = a fact that happened (`orders.created`, `payment.completed`); `.requested` = a command; `.failed` / `.rejected` / `.approved` = terminal states. Consumers filter on these, so keep the convention consistent.
+- **Never encode physical topology in a subject** (`orders.node1.…`, `orders.eu-datacenter.…`). A logical tenant/region partition is fine; a server or datacenter name isn't — it bakes your deployment into the namespace and breaks the day you migrate. A *logical* region used for routing is acceptable; a physical one is not.
+- **Never put a schema version in the subject** (`orders.created.v2`). Versioned subjects change stream config and break tenant-wide replay (`nats stream view … --subject 'tenant.<id>.>'`). Put the version in a header (`X-Schema-Version`) and/or a payload field instead, and evolve payloads additively.
 
 ### Stream subject grouping
 

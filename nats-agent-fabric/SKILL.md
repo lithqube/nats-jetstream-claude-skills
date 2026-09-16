@@ -24,6 +24,7 @@ This skill is built on the NATS **Services API (micro)**, *not* core JetStream �
 - Designing the underlying streams/KV buckets that back durable agent memory → also read `jetstream-architecture`.
 - Deploying the NATS servers/accounts your agents connect to → `jetstream-deployment`.
 - Monitoring, troubleshooting, or tuning the running fabric → `jetstream-operations`.
+- Building the agent inside a **Nuxt / Nitro** app → the `nuxt-nats` skill wraps this SDK with `defineNatsAgent` / `useAgents` (a real reference implementation of a protocol-compliant TS host, incl. `response.ask` for human-in-the-loop).
 
 ## Reference Files
 

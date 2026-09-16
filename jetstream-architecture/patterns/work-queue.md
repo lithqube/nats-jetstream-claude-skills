@@ -256,6 +256,17 @@ func processTask(msg *nats.Msg) error {
 }
 ```
 
+### The honest exactly-once: at-least-once delivery + an inbox table
+
+"Exactly-once" on NATS is really **at-least-once delivery with idempotent effects**. The production shape both money-handling and multi-service systems converge on is an **inbox / processed-messages table** that makes the check-and-effect atomic in the consumer's own database:
+
+- Key the table on **`(Nats-Msg-Id, handler)`** — the same message consumed by two different handlers must each get to run once, so the handler name is part of the key.
+- In **one database transaction**: verify the row doesn't exist, apply the business effect, and `INSERT ... ON CONFLICT (message_id, handler) DO NOTHING`. Commit, *then* `Ack()`. If the process dies after commit but before ack, redelivery re-runs the transaction and the `ON CONFLICT` no-ops — the effect happens exactly once.
+- **Commit the effect before you ack**, never after. Ack-then-write loses the message if the writer crashes in between.
+- **Reject a message with no `Nats-Msg-Id`** (`Term` it) rather than trying to dedup by subject — you can't dedup what has no id, and a redelivery will never acquire the id it was never sent with, so `Nak` would just loop it to `MaxDeliver`.
+
+This pairs with publish-side `Nats-Msg-Id` dedup (above): the broker's `duplicate_window` collapses duplicate *publishes*, the inbox table collapses duplicate *deliveries*. You need both, and the `duplicate_window` must be at least as long as your publish-retry / outbox-drain interval or the broker half of the guarantee has already expired by the time a retry lands.
+
 ## Priority Queues
 
 JetStream doesn't have native priority. Implement with multiple subjects and weighted consumption:

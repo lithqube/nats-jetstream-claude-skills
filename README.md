@@ -53,6 +53,20 @@ Build AI agents that discover and prompt each other over NATS using the **Synadi
 
 > Built on the NATS Services API (micro), not core JetStream — JetStream/KV are the optional durable-state layer behind the fabric. Cross-referenced from all three JetStream skills.
 
+### nuxt-nats
+
+Use the **`nuxt-nats` Nuxt 4 / Nitro module** to talk to NATS JetStream from a Nuxt app. Covers:
+
+- Module configuration (`nats:` key), env-var overrides, and the auth priority chain (JWT+NKey → JWT → NKey → token → user/pass)
+- Publishing with `jsPublish` (typed via `NatsEvents`, `msgId` dedup, retry) and `corePublish`
+- Durable pull consumers with `defineNatsConsumer`, the `NUXT_NATS_WORKERS` worker gate, and ack/nak/term discipline
+- Dead-letter handling with `defineDeadLetterConsumer` (advisory capture — NATS has no built-in DLQ) and SSE via `useEphemeralConsumer`
+- KV / Object Store (`useKV` / `useObj`) with the real unit/stream gotchas
+- Agent fabric (`defineNatsAgent` / `useAgents`) on the Synadia Agent Protocol
+- Production gotchas: the SSR/Nitro lifecycle race, reconnect-storm status semantics, Nitro externals, provisioning races, and Testcontainers testing
+
+> Distilled from lithqube's `nuxt-nats` module and two production deployments. Uses the modular `@nats-io/*` v3 client throughout.
+
 ## Installation
 
 Copy the skill directories into your project's `.claude/skills/` directory:
@@ -64,6 +78,7 @@ cp -r jetstream-architecture .claude/skills/
 cp -r jetstream-deployment .claude/skills/
 cp -r jetstream-operations .claude/skills/
 cp -r nats-agent-fabric .claude/skills/
+cp -r nuxt-nats .claude/skills/
 ```
 
 ## File Structure
@@ -110,6 +125,16 @@ nats-agent-fabric/
     typescript.md       # @synadia-ai/agents + @synadia-ai/agent-service
     python.md           # synadia-ai-agents + synadia-ai-agent-service
     protocol-go.md      # Protocol-compliant agent in Go over nats.go micro
+
+nuxt-nats/
+  SKILL.md              # Module overview, config quickstart, workflow, principles
+  references/
+    configuration.md    # nats: options, env vars, auth chain, provisioning stance
+    publishing.md       # jsPublish/corePublish, typed NatsEvents, msgId dedup, outbox
+    consumers.md        # defineNatsConsumer, worker gate, DLQ, ephemeral (SSE)
+    kv-object.md        # useKV/useObj + unit and ReadableStream gotchas
+    agents.md           # defineNatsAgent/useAgents on the Synadia Agent Protocol
+    gotchas.md          # SSR lifecycle race, reconnect storm, externals, testing
 ```
 
 ## License

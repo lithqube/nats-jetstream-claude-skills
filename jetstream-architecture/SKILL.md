@@ -22,7 +22,7 @@ Read these files when they're relevant to the user's question — don't load all
 - `patterns/work-queue.md` — work queue with competing consumers, DLQ, deduplication, priority queues. Read when the user needs task distribution or job processing.
 - `examples/go.md` — complete Go examples using nats.go. Read when the user wants Go code.
 - `examples/python.md` — complete Python examples using nats-py. Read when the user wants Python code.
-- `examples/javascript.md` — complete JavaScript/Node.js examples using nats.js. Read when the user wants JavaScript or TypeScript code.
+- `examples/javascript.md` — complete JavaScript/TypeScript examples using the modular `@nats-io/*` v3 client (not the legacy `nats` package). Read when the user wants JavaScript or TypeScript code.
 
 ## Workflow
 

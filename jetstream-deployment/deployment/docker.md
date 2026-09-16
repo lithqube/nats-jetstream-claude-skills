@@ -48,12 +48,26 @@ http: 0.0.0.0:8222
 
 jetstream {
   store_dir: /data/jetstream
-  max_mem: 1G
+  max_mem: 1G       # EXPLICIT LIMITS ARE MANDATORY, not tuning — see note below
   max_file: 10G
 }
 
 max_payload: 8MB
 ```
+
+> **Explicit JetStream store limits are mandatory, not a tuning knob.** An unbounded `store_dir` will fill the host disk and take down everything else sharing it (reverse proxy, auth service, database, the app itself). Always set `max_mem` and `max_file` to a fraction of the volume, and size the volume deliberately.
+
+### Production: publishing a port bypasses your `listen` bind
+
+Docker's `ports:` publishing sits **in front of** the server's own `listen` address, so binding NATS to `127.0.0.1` inside `nats-server.conf` does **not** protect it — a published `4222:4222` exposes the broker on all host interfaces regardless. On a cloud VM behind only a host firewall this can put JetStream on the public internet. Bind the published port to the private interface, and fail closed if the interface var is empty:
+
+```yaml
+    ports:
+      - "${NATS_PRIVATE_IP:?set NATS_PRIVATE_IP}:4222:4222"   # never just "4222:4222" in prod
+      - "${NATS_PRIVATE_IP:?set NATS_PRIVATE_IP}:8222:8222"
+```
+
+The `:?` guard means the container refuses to start if `NATS_PRIVATE_IP` is unset, rather than silently falling back to `0.0.0.0`.
 
 ## 3-Node Cluster for Local Development
 
