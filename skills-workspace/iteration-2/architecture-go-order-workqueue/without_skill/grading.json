@@ -1,0 +1,33 @@
+{
+  "eval_name": "architecture-go-order-workqueue",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Uses a WorkQueue-retention stream",
+      "passed": true,
+      "evidence": "module order-workqueue  go 1.22  require github.com/"
+    },
+    {
+      "text": "Consumer uses explicit ack (AckExplicit)",
+      "passed": true,
+      "evidence": "cesses; no config change. - **Explicit ack + `MaxDeliver` + `BackOff`** "
+    },
+    {
+      "text": "Sets MaxDeliver to bound retries",
+      "passed": true,
+      "evidence": "g change. - **Explicit ack + `MaxDeliver` + `BackOff`** give you retri"
+    },
+    {
+      "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish",
+      "passed": true,
+      "evidence": " producer sets a message ID (`WithMsgID(o.ID)`). Combined with the st"
+    },
+    {
+      "text": "Uses a durable PULL consumer (not push/ephemeral)",
+      "passed": true,
+      "evidence": "\" guarantee you want. - **One durable pull consumer** (`order-worke"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

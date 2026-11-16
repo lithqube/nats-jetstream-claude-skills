@@ -1,0 +1,20 @@
+{
+  "eval_id": 6,
+  "eval_name": "feature-gating-2.11-atomic-ttl",
+  "skill": "jetstream-architecture",
+  "prompt": "We're running NATS server 2.11 in production. I want atomic batch publishing (all-or-nothing writes of a group of messages) and per-message TTL on my streams, in Go. Set it up.",
+  "assertions": [
+    {
+      "text": "States atomic batch publishing requires server 2.12+ (NOT available on 2.11)"
+    },
+    {
+      "text": "Does not present atomic batch as working on 2.11"
+    },
+    {
+      "text": "Per-message TTL requires allow_msg_ttl on the stream"
+    },
+    {
+      "text": "Recommends capability detection via api.level"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "architecture-go-order-workqueue",
+  "skill": "jetstream-architecture",
+  "prompt": "I'm building an order processing system in Go. Orders are produced by a web API and need to be processed by exactly one of several worker instances, with retries on failure. Show me how to model the stream and consumer in JetStream and write the producer plus a worker.",
+  "assertions": [
+    {
+      "text": "Uses a WorkQueue-retention stream"
+    },
+    {
+      "text": "Consumer uses explicit ack (AckExplicit)"
+    },
+    {
+      "text": "Sets MaxDeliver to bound retries"
+    },
+    {
+      "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish"
+    },
+    {
+      "text": "Uses a durable PULL consumer (not push/ephemeral)"
+    }
+  ]
+}

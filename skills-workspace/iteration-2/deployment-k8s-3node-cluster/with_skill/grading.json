@@ -1,0 +1,33 @@
+{
+  "eval_name": "deployment-k8s-3node-cluster",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Declares 3 replicas",
+      "passed": true,
+      "evidence": "# 3-Node NATS JetStream Cluster on Kub"
+    },
+    {
+      "text": "JetStream file storage backed by a PVC",
+      "passed": true,
+      "evidence": "ersistentVolume.** `jetstream.fileStore.enabled: true` makes    the c"
+    },
+    {
+      "text": "Pins a specific NATS image tag (not 'latest')",
+      "passed": true,
+      "evidence": "orage-fill alerts. - **Pinned image** `2.14.6` (a supported line) \u2014 never"
+    },
+    {
+      "text": "Includes pod anti-affinity to spread across nodes",
+      "passed": true,
+      "evidence": "axUnavailable: 1` plus pod    anti-affinity / topology spread keep two no"
+    },
+    {
+      "text": "Provides resource/disk sizing guidance",
+      "passed": true,
+      "evidence": " disk is kept, not wiped.  ## Sizing  The values ship the **Medium"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

@@ -1,0 +1,23 @@
+{
+  "eval_id": 7,
+  "eval_name": "dlq-work-queue-truth",
+  "skill": "jetstream-architecture",
+  "prompt": "Set up a dead-letter queue in NATS JetStream: when a message in my work queue fails processing 5 times, it should go to a DLQ so I can inspect and replay it. Go.",
+  "assertions": [
+    {
+      "text": "States NATS has no native dead-letter queue"
+    },
+    {
+      "text": "Uses MaxDeliver=5 to bound retries"
+    },
+    {
+      "text": "Consumes the MAX_DELIVERIES advisory to catch exhausted messages"
+    },
+    {
+      "text": "Republishes/copies the failed message to a separate DLQ stream"
+    },
+    {
+      "text": "Notes the original message is not auto-deleted from the stream"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "eval_name": "feature-gating-2.11-atomic-ttl",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "States atomic batch requires 2.12+ (NOT on 2.11)",
+      "passed": true,
+      "evidence": "ts \t\twantTTL       bool \t\twantAtomic    bool \t}{ \t\t{\"2.10-or-older\", 0, false, false}, \t\t{"
+    },
+    {
+      "text": "Does not present atomic batch as working on 2.11",
+      "passed": true,
+      "evidence": "h is a 2.12+ feature. It does NOT exist on NATS 2.11. // The code below is written"
+    },
+    {
+      "text": "Per-message TTL requires allow_msg_ttl on the stream",
+      "passed": true,
+      "evidence": "onours per-message TTL. // // AllowMsgTTL is the second gate: without i"
+    },
+    {
+      "text": "Recommends capability detection via api.level",
+      "passed": true,
+      "evidence": "string \t\tlevel         int // api.level the server reports \t\twantTTL "
+    }
+  ],
+  "pass_count": 4,
+  "total": 4
+}

@@ -1,0 +1,33 @@
+{
+  "eval_name": "architecture-go-order-workqueue",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Uses a WorkQueue-retention stream",
+      "passed": true,
+      "evidence": "module example.com/order-workqueue  go 1.22  require github.com/"
+    },
+    {
+      "text": "Consumer uses explicit ack (AckExplicit)",
+      "passed": true,
+      "evidence": "nsumer, \t\tAckPolicy:     nats.AckExplicitPolicy, \t\tAckWait:       30 * "
+    },
+    {
+      "text": "Sets MaxDeliver to bound retries",
+      "passed": true,
+      "evidence": "3                             MaxDeliver exhausted \u2500\u25b6 advisory \u2500\u25b6 ORDE"
+    },
+    {
+      "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish",
+      "passed": true,
+      "evidence": "ers.  **Idempotent publish = `Nats-Msg-Id`.** The API sets the message "
+    },
+    {
+      "text": "Uses a durable PULL consumer (not push/ephemeral)",
+      "passed": true,
+      "evidence": " ORDERS (WorkQueuePolicy) \u2500\u2500\u25b6 durable pull consumer \"order-workers\""
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

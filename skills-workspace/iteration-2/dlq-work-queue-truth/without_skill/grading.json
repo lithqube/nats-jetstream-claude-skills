@@ -1,0 +1,33 @@
+{
+  "eval_name": "dlq-work-queue-truth",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "States NATS has no native dead-letter queue",
+      "passed": true,
+      "evidence": "he one thing to know first  **JetStream has no built-in dead-letter queue.**"
+    },
+    {
+      "text": "Uses MaxDeliver=5 to bound retries",
+      "passed": true,
+      "evidence": "esses work.> messages. On the 5th failed attempt it copies the message // (pay"
+    },
+    {
+      "text": "Consumes the MAX_DELIVERIES advisory",
+      "passed": true,
+      "evidence": " `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.WORK.worker` advisory when `m"
+    },
+    {
+      "text": "Republishes/copies the failed message to a separate DLQ stream",
+      "passed": true,
+      "evidence": " THIS delivery (starts at 1). Republish on the final     // business "
+    },
+    {
+      "text": "Notes the original message is not auto-deleted",
+      "passed": false,
+      "evidence": "not found"
+    }
+  ],
+  "pass_count": 4,
+  "total": 5
+}

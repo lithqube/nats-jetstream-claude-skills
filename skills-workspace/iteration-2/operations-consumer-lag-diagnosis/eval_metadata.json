@@ -1,0 +1,20 @@
+{
+  "eval_id": 3,
+  "eval_name": "operations-consumer-lag-diagnosis",
+  "skill": "jetstream-operations",
+  "prompt": "My JetStream consumer has been falling behind for the past hour. nats consumer report shows Num Pending climbing and Num Ack Pending pinned at the max. Walk me through diagnosing and fixing it.",
+  "assertions": [
+    {
+      "text": "Identifies MaxAckPending saturation as a root cause"
+    },
+    {
+      "text": "Uses nats consumer report/info to diagnose"
+    },
+    {
+      "text": "Addresses AckWait-driven redelivery"
+    },
+    {
+      "text": "Gives concrete remediation commands (max-pending / workers / batch)"
+    }
+  ]
+}

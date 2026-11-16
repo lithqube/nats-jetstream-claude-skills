@@ -1,0 +1,23 @@
+{
+  "eval_id": 5,
+  "eval_name": "agent-fabric-meta-agent-ts",
+  "skill": "nats-agent-fabric",
+  "prompt": "Using the Synadia agents SDK in TypeScript, build a meta-agent that discovers the other AI agents registered over NATS and fans a single prompt out to all of them, then merges their replies. Show the discovery and the fan-out.",
+  "assertions": [
+    {
+      "text": "Imports the @synadia-ai/agents SDK"
+    },
+    {
+      "text": "Performs agent discovery over NATS"
+    },
+    {
+      "text": "Fans the prompt out to multiple discovered agents"
+    },
+    {
+      "text": "Merges/aggregates the agent replies"
+    },
+    {
+      "text": "Uses protocol-compliant agents.* / $SRV subjects"
+    }
+  ]
+}

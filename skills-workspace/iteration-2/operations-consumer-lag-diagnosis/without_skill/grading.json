@@ -1,0 +1,28 @@
+{
+  "eval_name": "operations-consumer-lag-diagnosis",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Identifies MaxAckPending saturation as a root cause",
+      "passed": true,
+      "evidence": "ER\" \\     | grep -E 'Ack Wait|Max Ack Pending|Max Deliver|Acknowledgment Po"
+    },
+    {
+      "text": "Uses nats consumer report/info to diagnose",
+      "passed": true,
+      "evidence": "REAM CONSUMER}\"  fields() {   nats consumer info \"$STREAM\" \"$CONSUMER\" \\     |"
+    },
+    {
+      "text": "Addresses AckWait-driven redelivery",
+      "passed": true,
+      "evidence": " \"$CONSUMER\" \\     | grep -E 'Ack Wait|Max Ack Pending|Max Deliver|A"
+    },
+    {
+      "text": "Gives concrete remediation commands",
+      "passed": true,
+      "evidence": "worker instances first; raise --max-pending only if workers can use it;\" "
+    }
+  ],
+  "pass_count": 4,
+  "total": 4
+}

@@ -1,0 +1,33 @@
+{
+  "eval_name": "agent-fabric-meta-agent-ts",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Imports the @synadia-ai/agents SDK",
+      "passed": true,
+      "evidence": "hing here needs to run):  *   @synadia-ai/agents        - agent client / disco"
+    },
+    {
+      "text": "Performs agent discovery over NATS",
+      "passed": true,
+      "evidence": "the Synadia Agents SDK.  *  * Discovers every AI agent registered on"
+    },
+    {
+      "text": "Fans the prompt out to multiple discovered agents",
+      "passed": true,
+      "evidence": "red on the NATS agent fabric, fans a single  * prompt out to al"
+    },
+    {
+      "text": "Merges/aggregates the agent replies",
+      "passed": true,
+      "evidence": " all of them in parallel, and merges their replies.  *  * Package"
+    },
+    {
+      "text": "Uses protocol-compliant agents.* / $SRV subjects",
+      "passed": true,
+      "evidence": "t client / discovery over the agents.* namespace  *   @nats-io/tran"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}
