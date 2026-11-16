@@ -45,7 +45,7 @@ consumer, _ := js.AddConsumer("TASKS", &nats.ConsumerConfig{
     AckWait:       30 * time.Second,
     MaxDeliver:    5,
     MaxAckPending: 100,               // per-worker concurrency limit
-    Backoff: []time.Duration{
+    BackOff: []time.Duration{
         5 * time.Second,
         30 * time.Second,
         2 * time.Minute,
