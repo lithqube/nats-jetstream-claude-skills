@@ -36,8 +36,8 @@ Verified levels, read from `jetstream_versioning.go` at each release tag:
 | 2.11.0 – 2.11.17 | 1 |
 | 2.12.0 – 2.12.4 | 2 |
 | 2.12.5 – 2.12.15 | 3 |
-| 2.14.0 – 2.14.6 | 4 |
-| 2.15.0-RC | 5 |
+| 2.14.0 – 2.14.7 | 4 |
+| 2.15.0 – 2.15.1 | 5 |
 
 Two traps:
 
@@ -139,6 +139,16 @@ So a client that has been sending a junk field since 2.10 got no signal for two 
 now fails outright. If you are reviewing a wrapper or an IaC layer, check it is not
 round-tripping `_nats.ver` / `_nats.level` from a `StreamInfo` read back into a create call:
 that is the classic form of this bug.
+
+## New default in 2.15: 1000 consumers per stream
+
+From 2.15 a stream defaults to a **max of 1000 consumers** when `max_consumers` is unset in
+the stream config and no account limit applies. Existing consumers are untouched, but
+creating the 1001st is rejected. A design that fans out to a consumer-per-user, or churns
+short-lived ephemeral consumers faster than they expire, now hits a ceiling that did not
+exist on 2.14. Set `max_consumers` explicitly on the stream (or `default_max_consumers` in
+the JetStream limits block, `-1` to disable) when you expect many — do not rely on the old
+unlimited default.
 
 ## Deduplication
 
