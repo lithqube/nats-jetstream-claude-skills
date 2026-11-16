@@ -1,0 +1,28 @@
+{
+  "eval_name": "feature-gating-2.11-atomic-ttl",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "States atomic batch requires 2.12+ (NOT on 2.11)",
+      "passed": true,
+      "evidence": "f those don't fit, upgrade to 2.12 and use PublishAtomicBatch2_12 below.  // EnvMsg is one"
+    },
+    {
+      "text": "Does not present atomic batch as working on 2.11",
+      "passed": true,
+      "evidence": "------------- // // On server 2.11 there is NO server-side atomic multi-message batch. A s"
+    },
+    {
+      "text": "Per-message TTL requires allow_msg_ttl on the stream",
+      "passed": true,
+      "evidence": " TTL** | \u2705 Yes, GA in 2.11 | `AllowMsgTTL: true` on the stream + `Nats-"
+    },
+    {
+      "text": "Recommends capability detection via api.level",
+      "passed": true,
+      "evidence": " *nats.Conn) error { \tv := nc.ConnectedServerVersion() // e.g. \"2.11.4\" \tvar maj, "
+    }
+  ],
+  "pass_count": 4,
+  "total": 4
+}

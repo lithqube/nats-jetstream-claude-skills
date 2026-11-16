@@ -1,0 +1,33 @@
+{
+  "eval_name": "agent-fabric-meta-agent-ts",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Imports the @synadia-ai/agents SDK",
+      "passed": true,
+      "evidence": "merge the replies. // // SDK: @synadia-ai/agents (caller side) + @nats-io/tran"
+    },
+    {
+      "text": "Performs agent discovery over NATS",
+      "passed": true,
+      "evidence": "ynadia Agent Protocol (NATS): discover the fleet, // fan one prompt "
+    },
+    {
+      "text": "Fans the prompt out to multiple discovered agents",
+      "passed": true,
+      "evidence": "NATS): discover the fleet, // fan one prompt out to every agent"
+    },
+    {
+      "text": "Merges/aggregates the agent replies",
+      "passed": true,
+      "evidence": "ne prompt out to every agent, merge the replies. // // SDK: @syna"
+    },
+    {
+      "text": "Uses protocol-compliant agents.* / $SRV subjects",
+      "passed": true,
+      "evidence": "tract (service name \"agents\", $SRV discovery, typed chunk stream"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

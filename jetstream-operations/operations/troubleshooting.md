@@ -209,6 +209,40 @@ R1 (single replica) streams have no redundancy. If the node restarts, data in me
 
 Fix: Use `Replicas: 3` for production streams. R1 is for development only.
 
+### Maintenance and disaster recovery (2.15+)
+
+2.15 reworked how the meta layer reconciles placement (ADR-62), making node drains and
+recoveries safer than the old "peer-remove and hope." These are JetStream API subjects, not
+high-level `nats` verbs yet — call them with `nats req` from the **system account** (bodies
+per ADR-62).
+
+| Subject | Use it to |
+|---|---|
+| `$JS.API.SERVER.EVACUATE` | Drain **all** assets off one server before planned maintenance |
+| `$JS.API.STREAM.PEER.EVACUATE.<stream>` | Drain a single stream's peer while it's still healthy |
+| `$JS.API.STREAM.CANCEL_MOVE.<stream>` | Abort an in-flight move/scale, returning peers to the original set |
+| `$JS.API.META.RESCUE` | Last-resort recovery when the meta group has lost quorum |
+
+**Prefer evacuate over peer-remove for a node that's coming back.** Evacuation assigns a
+replacement and lets the leaving node keep helping others catch up first. Peer-remove
+(`$JS.API.STREAM.PEER.REMOVE.<stream>`, `$JS.API.SERVER.REMOVE`) is for a node that is
+**already gone** — it frees the slot immediately but will not re-add the peer, so use it only
+when the node is not returning, then scale down to match.
+
+**`CANCEL_MOVE` caveat:** stream peers return to their origin, but consumers may end up on
+different peers than before.
+
+**`META.RESCUE` is deliberately labelled unsafe (ADR-61).** It *temporarily lowers the meta
+quorum requirement* so survivors can elect a meta leader after a **permanent** majority loss.
+It trades a consistency guarantee for availability — reach for it only in genuine disaster
+recovery, after the lost nodes are confirmed gone for good. Never use it on a transient
+partition: that self-heals (see Split Brain above).
+
+**Backup/restore V2 (ADR-63):** `nats stream backup` / `nats stream restore` are unchanged,
+but on a 2.15 server the snapshot format reads per-message instead of per-block and now
+captures non-replicated (R1) consumers on follower nodes, so a restore brings those back too.
+No new commands — just run 2.15 on both ends.
+
 ## Client Disconnections
 
 ### Diagnosis

@@ -1,0 +1,657 @@
+{
+  "metadata": {
+    "skill_name": "nats-jetstream-skills",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-16T21:57:42Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 339.9,
+        "tokens": 126350,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses a WorkQueue-retention stream",
+          "passed": true,
+          "evidence": "module example.com/order-workqueue  go 1.22  require github.com/"
+        },
+        {
+          "text": "Consumer uses explicit ack (AckExplicit)",
+          "passed": true,
+          "evidence": "nsumer, \t\tAckPolicy:     nats.AckExplicitPolicy, \t\tAckWait:       30 * "
+        },
+        {
+          "text": "Sets MaxDeliver to bound retries",
+          "passed": true,
+          "evidence": "3                             MaxDeliver exhausted \u2500\u25b6 advisory \u2500\u25b6 ORDE"
+        },
+        {
+          "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish",
+          "passed": true,
+          "evidence": "ers.  **Idempotent publish = `Nats-Msg-Id`.** The API sets the message "
+        },
+        {
+          "text": "Uses a durable PULL consumer (not push/ephemeral)",
+          "passed": true,
+          "evidence": " ORDERS (WorkQueuePolicy) \u2500\u2500\u25b6 durable pull consumer \"order-workers\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 118.1,
+        "tokens": 102603,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Declares 3 replicas",
+          "passed": true,
+          "evidence": "# 3-Node NATS JetStream Cluster on Kub"
+        },
+        {
+          "text": "JetStream file storage backed by a PVC",
+          "passed": true,
+          "evidence": "ersistentVolume.** `jetstream.fileStore.enabled: true` makes    the c"
+        },
+        {
+          "text": "Pins a specific NATS image tag (not 'latest')",
+          "passed": true,
+          "evidence": "orage-fill alerts. - **Pinned image** `2.14.6` (a supported line) \u2014 never"
+        },
+        {
+          "text": "Includes pod anti-affinity to spread across nodes",
+          "passed": true,
+          "evidence": "axUnavailable: 1` plus pod    anti-affinity / topology spread keep two no"
+        },
+        {
+          "text": "Provides resource/disk sizing guidance",
+          "passed": true,
+          "evidence": " disk is kept, not wiped.  ## Sizing  The values ship the **Medium"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 139.8,
+        "tokens": 107915,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies MaxAckPending saturation as a root cause",
+          "passed": true,
+          "evidence": "ecide the diagnosis ==\" # Num Ack Pending == Max Ack Pending -> blocked"
+        },
+        {
+          "text": "Uses nats consumer report/info to diagnose",
+          "passed": true,
+          "evidence": " echo \"== consumer report ==\" nats consumer report \"$STREAM\"  echo; echo \"== con"
+        },
+        {
+          "text": "Addresses AckWait-driven redelivery",
+          "passed": true,
+          "evidence": "pending|ack floor|redelivered|ack wait|max deliver' || true  echo; e"
+        },
+        {
+          "text": "Gives concrete remediation commands",
+          "passed": true,
+          "evidence": " enough time:**  ```bash nats consumer edit ORDERS order-processor --ack-"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 90.2,
+        "tokens": 102826,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Configures the nats: key in nuxt.config",
+          "passed": true,
+          "evidence": "fineNuxtConfig({   modules: ['nuxt-nats'],   nats: {     // Prod: ove"
+        },
+        {
+          "text": "Publishes with jsPublish/corePublish",
+          "passed": true,
+          "evidence": "i/orders.post.ts` \u2014 publish  `jsPublish('orders.created', body, { msg"
+        },
+        {
+          "text": "Registers a durable consumer via defineNatsConsumer",
+          "passed": true,
+          "evidence": "durable background consumer  `defineNatsConsumer({ stream: 'ORDERS', durable: "
+        },
+        {
+          "text": "Types subjects via the NatsEvents interface",
+          "passed": true,
+          "evidence": "s` \u2014 typed subjects  Augment `NatsEvents` so every `jsPublish` subject"
+        },
+        {
+          "text": "Notes NUXT_NATS_WORKERS must be set",
+          "passed": true,
+          "evidence": "** Consumers run **only when `NUXT_NATS_WORKERS=true`**. The publisher (API r"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 154.7,
+        "tokens": 109641,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Imports the @synadia-ai/agents SDK",
+          "passed": true,
+          "evidence": "merge the replies. // // SDK: @synadia-ai/agents (caller side) + @nats-io/tran"
+        },
+        {
+          "text": "Performs agent discovery over NATS",
+          "passed": true,
+          "evidence": "ynadia Agent Protocol (NATS): discover the fleet, // fan one prompt "
+        },
+        {
+          "text": "Fans the prompt out to multiple discovered agents",
+          "passed": true,
+          "evidence": "NATS): discover the fleet, // fan one prompt out to every agent"
+        },
+        {
+          "text": "Merges/aggregates the agent replies",
+          "passed": true,
+          "evidence": "ne prompt out to every agent, merge the replies. // // SDK: @syna"
+        },
+        {
+          "text": "Uses protocol-compliant agents.* / $SRV subjects",
+          "passed": true,
+          "evidence": "tract (service name \"agents\", $SRV discovery, typed chunk stream"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 165.2,
+        "tokens": 108572,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States atomic batch requires 2.12+ (NOT on 2.11)",
+          "passed": true,
+          "evidence": "ts \t\twantTTL       bool \t\twantAtomic    bool \t}{ \t\t{\"2.10-or-older\", 0, false, false}, \t\t{"
+        },
+        {
+          "text": "Does not present atomic batch as working on 2.11",
+          "passed": true,
+          "evidence": "h is a 2.12+ feature. It does NOT exist on NATS 2.11. // The code below is written"
+        },
+        {
+          "text": "Per-message TTL requires allow_msg_ttl on the stream",
+          "passed": true,
+          "evidence": "onours per-message TTL. // // AllowMsgTTL is the second gate: without i"
+        },
+        {
+          "text": "Recommends capability detection via api.level",
+          "passed": true,
+          "evidence": "string \t\tlevel         int // api.level the server reports \t\twantTTL "
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 286.6,
+        "tokens": 121710,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States NATS has no native dead-letter queue",
+          "passed": true,
+          "evidence": "e thing to know first  **NATS JetStream has no native dead-letter queue.** T"
+        },
+        {
+          "text": "Uses MaxDeliver=5 to bound retries",
+          "passed": true,
+          "evidence": "eased server including 2.15. `MaxDeliver: 5` on its own means *\"try 5 tim"
+        },
+        {
+          "text": "Consumes the MAX_DELIVERIES advisory",
+          "passed": true,
+          "evidence": "luing them together:  1. A **`MAX_DELIVERIES` advisory** the server publis"
+        },
+        {
+          "text": "Republishes/copies the failed message to a separate DLQ stream",
+          "passed": true,
+          "evidence": "                         TASKS_DLQ (LimitsPolicy) \u2500\u2500inspect / re"
+        },
+        {
+          "text": "Notes the original message is not auto-deleted",
+          "passed": true,
+          "evidence": "sage that hit `MaxDeliver` is never acked, so it   *stays in the stream"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 146.8,
+        "tokens": 100010,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses a WorkQueue-retention stream",
+          "passed": true,
+          "evidence": "module order-workqueue  go 1.22  require github.com/"
+        },
+        {
+          "text": "Consumer uses explicit ack (AckExplicit)",
+          "passed": true,
+          "evidence": "cesses; no config change. - **Explicit ack + `MaxDeliver` + `BackOff`** "
+        },
+        {
+          "text": "Sets MaxDeliver to bound retries",
+          "passed": true,
+          "evidence": "g change. - **Explicit ack + `MaxDeliver` + `BackOff`** give you retri"
+        },
+        {
+          "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish",
+          "passed": true,
+          "evidence": " producer sets a message ID (`WithMsgID(o.ID)`). Combined with the st"
+        },
+        {
+          "text": "Uses a durable PULL consumer (not push/ephemeral)",
+          "passed": true,
+          "evidence": "\" guarantee you want. - **One durable pull consumer** (`order-worke"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 87.3,
+        "tokens": 94196,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Declares 3 replicas",
+          "passed": true,
+          "evidence": "# 3-node NATS JetStream cluster on Kub"
+        },
+        {
+          "text": "JetStream file storage backed by a PVC",
+          "passed": true,
+          "evidence": "for peer discovery, **per-pod PersistentVolumeClaims**, a PodDisruptionBudget, po"
+        },
+        {
+          "text": "Pins a specific NATS image tag (not 'latest')",
+          "passed": true,
+          "evidence": "e prod deploys. # config: #   image: #     tag: \"2.10.22-alpine\"  # Monitoring endp"
+        },
+        {
+          "text": "Includes pod anti-affinity to spread across nodes",
+          "passed": true,
+          "evidence": "*, a PodDisruptionBudget, pod anti-affinity, and a config-reloader sideca"
+        },
+        {
+          "text": "Provides resource/disk sizing guidance",
+          "passed": true,
+          "evidence": "nd a truly fresh install.  ## Sizing rationale  **Node count \u2014 why"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 129.5,
+        "tokens": 97078,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies MaxAckPending saturation as a root cause",
+          "passed": true,
+          "evidence": "ER\" \\     | grep -E 'Ack Wait|Max Ack Pending|Max Deliver|Acknowledgment Po"
+        },
+        {
+          "text": "Uses nats consumer report/info to diagnose",
+          "passed": true,
+          "evidence": "REAM CONSUMER}\"  fields() {   nats consumer info \"$STREAM\" \"$CONSUMER\" \\     |"
+        },
+        {
+          "text": "Addresses AckWait-driven redelivery",
+          "passed": true,
+          "evidence": " \"$CONSUMER\" \\     | grep -E 'Ack Wait|Max Ack Pending|Max Deliver|A"
+        },
+        {
+          "text": "Gives concrete remediation commands",
+          "passed": true,
+          "evidence": "worker instances first; raise --max-pending only if workers can use it;\" "
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 113.9,
+        "tokens": 96087,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Configures the nats: key in nuxt.config",
+          "passed": true,
+          "evidence": "fineNuxtConfig({   modules: ['nuxt-nats'],    // nuxt-nats options ->"
+        },
+        {
+          "text": "Publishes with jsPublish/corePublish",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Registers a durable consumer via defineNatsConsumer",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Types subjects via the NatsEvents interface",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Notes NUXT_NATS_WORKERS must be set",
+          "passed": false,
+          "evidence": "not found"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 99.3,
+        "tokens": 95001,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Imports the @synadia-ai/agents SDK",
+          "passed": true,
+          "evidence": "hing here needs to run):  *   @synadia-ai/agents        - agent client / disco"
+        },
+        {
+          "text": "Performs agent discovery over NATS",
+          "passed": true,
+          "evidence": "the Synadia Agents SDK.  *  * Discovers every AI agent registered on"
+        },
+        {
+          "text": "Fans the prompt out to multiple discovered agents",
+          "passed": true,
+          "evidence": "red on the NATS agent fabric, fans a single  * prompt out to al"
+        },
+        {
+          "text": "Merges/aggregates the agent replies",
+          "passed": true,
+          "evidence": " all of them in parallel, and merges their replies.  *  * Package"
+        },
+        {
+          "text": "Uses protocol-compliant agents.* / $SRV subjects",
+          "passed": true,
+          "evidence": "t client / discovery over the agents.* namespace  *   @nats-io/tran"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 158.8,
+        "tokens": 99594,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States atomic batch requires 2.12+ (NOT on 2.11)",
+          "passed": true,
+          "evidence": "f those don't fit, upgrade to 2.12 and use PublishAtomicBatch2_12 below.  // EnvMsg is one"
+        },
+        {
+          "text": "Does not present atomic batch as working on 2.11",
+          "passed": true,
+          "evidence": "------------- // // On server 2.11 there is NO server-side atomic multi-message batch. A s"
+        },
+        {
+          "text": "Per-message TTL requires allow_msg_ttl on the stream",
+          "passed": true,
+          "evidence": " TTL** | \u2705 Yes, GA in 2.11 | `AllowMsgTTL: true` on the stream + `Nats-"
+        },
+        {
+          "text": "Recommends capability detection via api.level",
+          "passed": true,
+          "evidence": " *nats.Conn) error { \tv := nc.ConnectedServerVersion() // e.g. \"2.11.4\" \tvar maj, "
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 148.2,
+        "tokens": 98823,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States NATS has no native dead-letter queue",
+          "passed": true,
+          "evidence": "he one thing to know first  **JetStream has no built-in dead-letter queue.**"
+        },
+        {
+          "text": "Uses MaxDeliver=5 to bound retries",
+          "passed": true,
+          "evidence": "esses work.> messages. On the 5th failed attempt it copies the message // (pay"
+        },
+        {
+          "text": "Consumes the MAX_DELIVERIES advisory",
+          "passed": true,
+          "evidence": " `$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.WORK.worker` advisory when `m"
+        },
+        {
+          "text": "Republishes/copies the failed message to a separate DLQ stream",
+          "passed": true,
+          "evidence": " THIS delivery (starts at 1). Republish on the final     // business "
+        },
+        {
+          "text": "Notes the original message is not auto-deleted",
+          "passed": false,
+          "evidence": "not found"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 184.9286,
+        "stddev": 92.315,
+        "min": 90.2,
+        "max": 339.9
+      },
+      "tokens": {
+        "mean": 111373.8571,
+        "stddev": 9164.5275,
+        "min": 102603,
+        "max": 126350
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8571,
+        "stddev": 0.2992,
+        "min": 0.2,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 126.2571,
+        "stddev": 26.988,
+        "min": 87.3,
+        "max": 158.8
+      },
+      "tokens": {
+        "mean": 97255.5714,
+        "stddev": 2285.9395,
+        "min": 94196,
+        "max": 100010
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.14",
+      "time_seconds": "+58.7",
+      "tokens": "+14118"
+    }
+  },
+  "notes": [
+    "The +14% pass-rate delta comes almost entirely from TWO evals. nuxt-nats: with-skill 5/5 vs baseline 1/5 \u2014 the baseline cannot know the proprietary module API (defineNatsConsumer, jsPublish, NatsEvents, NUXT_NATS_WORKERS). dlq: with-skill 5/5 vs baseline 4/5 \u2014 the baseline built the DLQ off deliveryCount and missed the MAX_DELIVERIES advisory.",
+    "The other 5 evals (architecture, deployment, operations, agent-fabric, feature-gating) scored 100% in BOTH configs. The assertions are keyword-level and the base model is strong on public NATS knowledge, so they do not discriminate. The skill's real added depth there (e.g. the feature-gating run's runtime api.level probe vs the baseline's static version check) is not visible in a keyword pass \u2014 judge those qualitatively in the Outputs tab.",
+    "Cost of the skill: roughly +59s wall-clock and +14k tokens per run on average (reading SKILL.md + reference files).",
+    "Grades are heuristic keyword/regex matches, not semantic. Treat them as a screen; the qualitative review is authoritative.",
+    "The runs surfaced a REAL skill bug, independently reported by 3 subagents and confirmed: the Go examples use the field name 'Backoff' where nats.go's ConsumerConfig is 'BackOff' (won't compile). Present in work-queue.md, go.md, consumers.md. One agent also flagged that nats.ErrMaxMessagesExceeded/ErrMaxBytesExceeded sentinels may not exist in current nats.go."
+  ]
+}

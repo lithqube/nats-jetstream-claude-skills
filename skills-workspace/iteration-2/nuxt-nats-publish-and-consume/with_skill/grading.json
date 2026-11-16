@@ -1,0 +1,33 @@
+{
+  "eval_name": "nuxt-nats-publish-and-consume",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Configures the nats: key in nuxt.config",
+      "passed": true,
+      "evidence": "fineNuxtConfig({   modules: ['nuxt-nats'],   nats: {     // Prod: ove"
+    },
+    {
+      "text": "Publishes with jsPublish/corePublish",
+      "passed": true,
+      "evidence": "i/orders.post.ts` \u2014 publish  `jsPublish('orders.created', body, { msg"
+    },
+    {
+      "text": "Registers a durable consumer via defineNatsConsumer",
+      "passed": true,
+      "evidence": "durable background consumer  `defineNatsConsumer({ stream: 'ORDERS', durable: "
+    },
+    {
+      "text": "Types subjects via the NatsEvents interface",
+      "passed": true,
+      "evidence": "s` \u2014 typed subjects  Augment `NatsEvents` so every `jsPublish` subject"
+    },
+    {
+      "text": "Notes NUXT_NATS_WORKERS must be set",
+      "passed": true,
+      "evidence": "** Consumers run **only when `NUXT_NATS_WORKERS=true`**. The publisher (API r"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

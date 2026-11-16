@@ -1,0 +1,33 @@
+{
+  "eval_name": "nuxt-nats-publish-and-consume",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Configures the nats: key in nuxt.config",
+      "passed": true,
+      "evidence": "fineNuxtConfig({   modules: ['nuxt-nats'],    // nuxt-nats options ->"
+    },
+    {
+      "text": "Publishes with jsPublish/corePublish",
+      "passed": false,
+      "evidence": "not found"
+    },
+    {
+      "text": "Registers a durable consumer via defineNatsConsumer",
+      "passed": false,
+      "evidence": "not found"
+    },
+    {
+      "text": "Types subjects via the NatsEvents interface",
+      "passed": false,
+      "evidence": "not found"
+    },
+    {
+      "text": "Notes NUXT_NATS_WORKERS must be set",
+      "passed": false,
+      "evidence": "not found"
+    }
+  ],
+  "pass_count": 1,
+  "total": 5
+}

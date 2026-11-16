@@ -3,120 +3,170 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I'm building an order processing system in Go. Orders are produced by an API and consumed by 3 services: payment, inventory, and notifications. Each service needs to process every order independently. How should I design this with NATS JetStream? Give me the stream config and consumer configs, plus working Go code.",
-      "expected_output": "A fanout stream design with LimitsPolicy or InterestPolicy retention, one durable consumer per service, pull consumers with AckExplicit, working Go code using nats.go with proper error handling, subject namespace recommendation like orders.>",
+      "eval_name": "architecture-go-order-workqueue",
+      "skill": "jetstream-architecture",
+      "prompt": "I'm building an order processing system in Go. Orders are produced by a web API and need to be processed by exactly one of several worker instances, with retries on failure. Show me how to model the stream and consumer in JetStream and write the producer plus a worker.",
+      "expected_output": "WorkQueue stream + durable pull consumer with explicit ack, MaxDeliver retries, idempotent publish (Nats-Msg-Id), and correct modular @nats-io or Go nats.go usage.",
       "files": [],
       "assertions": [
         {
-          "text": "Uses LimitsPolicy or InterestPolicy retention (not WorkQueuePolicy, which destroys messages after one ack — wrong for fanout)",
-          "passed": null,
-          "evidence": null
+          "text": "Uses a WorkQueue-retention stream"
         },
         {
-          "text": "Creates a separate durable consumer for each of the 3 services: payment, inventory, and notifications",
-          "passed": null,
-          "evidence": null
+          "text": "Consumer uses explicit ack (AckExplicit)"
         },
         {
-          "text": "Uses AckExplicit (not AckAll or AckNone) for the consumer ack policy",
-          "passed": null,
-          "evidence": null
+          "text": "Sets MaxDeliver to bound retries"
         },
         {
-          "text": "Sets MaxDeliver AND is correct about what happens at the limit. NATS has no dead-letter queue, so an acceptable answer either consumes the $JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES advisory to build one, or states plainly that exhausted messages are discarded by the server. Claiming MaxDeliver alone routes messages to a dead-letter stream FAILS this assertion.",
-          "passed": null,
-          "evidence": null
+          "text": "Publisher sets Nats-Msg-Id for idempotent/dedup publish"
         },
         {
-          "text": "Provides working Go code (not pseudocode) using nats.go — includes actual function calls like nc.Connect, js.AddStream, etc.",
-          "passed": null,
-          "evidence": null
-        },
-        {
-          "text": "Uses a hierarchical subject namespace like 'orders.>' or 'orders.created' (not a flat subject like 'orders')",
-          "passed": null,
-          "evidence": null
+          "text": "Uses a durable PULL consumer (not push/ephemeral)"
         }
       ]
     },
     {
       "id": 2,
-      "prompt": "I need to deploy a 3-node NATS JetStream cluster on Kubernetes. We're using Helm. I need production-grade config: persistent storage, TLS, NKey auth, proper health probes, and NetworkPolicy to lock down access. Give me the full values.yaml and any supporting manifests.",
-      "expected_output": "Complete Helm values.yaml with JetStream config, PVC storage, resource limits, health probes, TLS config, NKey authentication setup, and NetworkPolicy manifest",
+      "eval_name": "deployment-k8s-3node-cluster",
+      "skill": "jetstream-deployment",
+      "prompt": "I need to deploy a 3-node NATS JetStream cluster on Kubernetes. We're running production workloads and need file storage that survives pod restarts. Give me the Helm values or manifests and explain the sizing.",
+      "expected_output": "3-replica StatefulSet/Helm with JetStream file storage on a PVC, anti-affinity, pinned (non-latest) image, resource sizing guidance.",
       "files": [],
       "assertions": [
         {
-          "text": "Provides a values.yaml with JetStream explicitly enabled (jetstream.enabled: true or equivalent)",
-          "passed": null,
-          "evidence": null
+          "text": "Declares 3 replicas (StatefulSet or Helm cluster size 3)"
         },
         {
-          "text": "Includes resource requests and limits for the NATS containers",
-          "passed": null,
-          "evidence": null
+          "text": "JetStream file storage backed by a PersistentVolumeClaim"
         },
         {
-          "text": "Includes readiness and liveness probes (or references port 8222 health endpoint)",
-          "passed": null,
-          "evidence": null
+          "text": "Pins a specific NATS image tag (not 'latest')"
         },
         {
-          "text": "Includes a NetworkPolicy manifest restricting ingress/egress",
-          "passed": null,
-          "evidence": null
+          "text": "Includes pod anti-affinity to spread across nodes"
         },
         {
-          "text": "References TLS configuration (certificate secret or TLS settings in values.yaml)",
-          "passed": null,
-          "evidence": null
-        },
-        {
-          "text": "References NKey or JWT authentication (not plain token auth)",
-          "passed": null,
-          "evidence": null
-        },
-        {
-          "text": "Includes persistent volume claim or storage config for JetStream data",
-          "passed": null,
-          "evidence": null
+          "text": "Provides resource/disk sizing guidance"
         }
       ]
     },
     {
       "id": 3,
-      "prompt": "My JetStream consumer has been falling behind for the past hour. nats consumer report shows Num Pending keeps growing even though my workers are running. How do I diagnose and fix this? What CLI commands should I run and what are the most likely causes?",
-      "expected_output": "Step-by-step diagnosis starting with nats stream report and nats consumer report, checking num_ack_pending vs num_pending, likely causes (MaxAckPending too low, slow processing, small batch size, short AckWait), specific CLI commands to run, concrete fixes for each cause",
+      "eval_name": "operations-consumer-lag-diagnosis",
+      "skill": "jetstream-operations",
+      "prompt": "My JetStream consumer has been falling behind for the past hour. nats consumer report shows Num Pending climbing and Num Ack Pending pinned at the max. Walk me through diagnosing and fixing it.",
+      "expected_output": "Identifies MaxAckPending saturation / slow consumers / AckWait redelivery, uses nats consumer report/info, gives concrete edit commands and prevention.",
       "files": [],
       "assertions": [
         {
-          "text": "Recommends 'nats stream report' and 'nats consumer report' (or 'nats consumer info') as the first diagnostic commands",
-          "passed": null,
-          "evidence": null
+          "text": "Identifies MaxAckPending saturation as a root cause"
         },
         {
-          "text": "Distinguishes between num_pending (messages not yet delivered) and num_ack_pending (delivered but not yet acked) — these have different fixes",
-          "passed": null,
-          "evidence": null
+          "text": "Uses nats consumer report/info to diagnose"
         },
         {
-          "text": "Mentions MaxAckPending as a potential bottleneck (when it's too low, JetStream stops delivering new messages)",
-          "passed": null,
-          "evidence": null
+          "text": "Addresses AckWait-driven redelivery"
         },
         {
-          "text": "Mentions AckWait timeout as a cause of redeliveries that can contribute to apparent lag",
-          "passed": null,
-          "evidence": null
+          "text": "Gives concrete remediation commands (max-pending / workers / batch)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "nuxt-nats-publish-and-consume",
+      "skill": "nuxt-nats",
+      "prompt": "I have a Nuxt 4 app using the nuxt-nats module. From a server API route I want to publish an 'order.created' event, and I want a durable background consumer that processes those events. Show me the nuxt.config setup, the publish call, and the consumer.",
+      "expected_output": "nats: config in nuxt.config, jsPublish from a server route, defineNatsConsumer durable pull consumer, NatsEvents typing, awareness of the NUXT_NATS_WORKERS worker gate.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Configures the nats: key in nuxt.config"
         },
         {
-          "text": "Provides at least 3 distinct root causes with specific fixes for each (not just a generic list)",
-          "passed": null,
-          "evidence": null
+          "text": "Publishes with jsPublish/corePublish from a server route"
         },
         {
-          "text": "Provides the specific 'nats consumer info <stream> <consumer>' CLI command for detailed inspection",
-          "passed": null,
-          "evidence": null
+          "text": "Registers a durable consumer via defineNatsConsumer"
+        },
+        {
+          "text": "Types subjects via the NatsEvents interface"
+        },
+        {
+          "text": "Notes NUXT_NATS_WORKERS must be set for the consumer to run"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "agent-fabric-meta-agent-ts",
+      "skill": "nats-agent-fabric",
+      "prompt": "Using the Synadia agents SDK in TypeScript, build a meta-agent that discovers the other AI agents registered over NATS and fans a single prompt out to all of them, then merges their replies. Show the discovery and the fan-out.",
+      "expected_output": "Uses @synadia-ai/agents, discovers agents (e.g. $SRV/agents.* or SDK discovery), fans a prompt to each, merges streamed replies; protocol-compliant subjects.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Imports the @synadia-ai/agents SDK"
+        },
+        {
+          "text": "Performs agent discovery over NATS"
+        },
+        {
+          "text": "Fans the prompt out to multiple discovered agents"
+        },
+        {
+          "text": "Merges/aggregates the agent replies"
+        },
+        {
+          "text": "Uses protocol-compliant agents.* / $SRV subjects"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "feature-gating-2.11-atomic-ttl",
+      "skill": "jetstream-architecture",
+      "prompt": "We're running NATS server 2.11 in production. I want atomic batch publishing (all-or-nothing writes of a group of messages) and per-message TTL on my streams, in Go. Set it up.",
+      "expected_output": "Flags that atomic batch publish needs server 2.12 (api.level 2) + allow_atomic, so 2.11 cannot do it; per-message TTL works on 2.11 but requires allow_msg_ttl on the stream; recommends capability detection via api.level rather than assuming.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "States atomic batch publishing requires server 2.12+ (NOT available on 2.11)"
+        },
+        {
+          "text": "Does not present atomic batch as working on 2.11"
+        },
+        {
+          "text": "Per-message TTL requires allow_msg_ttl on the stream"
+        },
+        {
+          "text": "Recommends capability detection via api.level"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "eval_name": "dlq-work-queue-truth",
+      "skill": "jetstream-architecture",
+      "prompt": "Set up a dead-letter queue in NATS JetStream: when a message in my work queue fails processing 5 times, it should go to a DLQ so I can inspect and replay it. Go.",
+      "expected_output": "States NATS has no native DLQ; builds it with MaxDeliver=5 plus a consumer of the $JS.EVENT.ADVISORY.*.MAX_DELIVERIES advisory that republishes/copies the exhausted message to a separate DLQ stream; notes the message is not auto-deleted.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "States NATS has no native dead-letter queue"
+        },
+        {
+          "text": "Uses MaxDeliver=5 to bound retries"
+        },
+        {
+          "text": "Consumes the MAX_DELIVERIES advisory to catch exhausted messages"
+        },
+        {
+          "text": "Republishes/copies the failed message to a separate DLQ stream"
+        },
+        {
+          "text": "Notes the original message is not auto-deleted from the stream"
         }
       ]
     }

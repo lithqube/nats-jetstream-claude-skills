@@ -1,0 +1,33 @@
+{
+  "eval_name": "dlq-work-queue-truth",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "States NATS has no native dead-letter queue",
+      "passed": true,
+      "evidence": "e thing to know first  **NATS JetStream has no native dead-letter queue.** T"
+    },
+    {
+      "text": "Uses MaxDeliver=5 to bound retries",
+      "passed": true,
+      "evidence": "eased server including 2.15. `MaxDeliver: 5` on its own means *\"try 5 tim"
+    },
+    {
+      "text": "Consumes the MAX_DELIVERIES advisory",
+      "passed": true,
+      "evidence": "luing them together:  1. A **`MAX_DELIVERIES` advisory** the server publis"
+    },
+    {
+      "text": "Republishes/copies the failed message to a separate DLQ stream",
+      "passed": true,
+      "evidence": "                         TASKS_DLQ (LimitsPolicy) \u2500\u2500inspect / re"
+    },
+    {
+      "text": "Notes the original message is not auto-deleted",
+      "passed": true,
+      "evidence": "sage that hit `MaxDeliver` is never acked, so it   *stays in the stream"
+    }
+  ],
+  "pass_count": 5,
+  "total": 5
+}

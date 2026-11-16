@@ -41,7 +41,7 @@ Consumers are the mechanism for reading messages from a JetStream stream. Each c
 | `ReplayPolicy` | Replay speed: `ReplayInstant` or `ReplayOriginal` | `ReplayInstant` |
 | `MaxAckPending` | Max unacknowledged messages in flight | `1000` |
 | `MaxWaiting` | Max pending pull requests (pull consumers only) | `512` |
-| `Backoff` | Custom redelivery backoff durations | none |
+| `BackOff` | Custom redelivery backoff durations | none |
 | `InactiveThreshold` | Time before ephemeral consumer is deleted | `5s` |
 | `NumReplicas` | Consumer replica count (0 = inherit from stream) | `0` |
 | `MemStorage` | Store consumer state in memory (even if stream is file) | `false` |
@@ -134,7 +134,7 @@ Configure custom redelivery intervals for failed messages:
     Durable:    "order-processor",
     AckPolicy:  nats.AckExplicit,
     MaxDeliver: 5,
-    Backoff: []time.Duration{
+    BackOff: []time.Duration{
         2 * time.Second,   // 1st retry
         10 * time.Second,  // 2nd retry
         30 * time.Second,  // 3rd retry
@@ -143,4 +143,4 @@ Configure custom redelivery intervals for failed messages:
 }
 ```
 
-When `Backoff` is set, `AckWait` applies only to the first delivery. Subsequent redeliveries use the backoff schedule. If there are more retries than backoff entries, the last entry is repeated.
+When `BackOff` is set, `AckWait` applies only to the first delivery. Subsequent redeliveries use the backoff schedule. If there are more retries than backoff entries, the last entry is repeated.

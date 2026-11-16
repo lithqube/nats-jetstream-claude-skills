@@ -1,0 +1,28 @@
+{
+  "eval_name": "operations-consumer-lag-diagnosis",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Identifies MaxAckPending saturation as a root cause",
+      "passed": true,
+      "evidence": "ecide the diagnosis ==\" # Num Ack Pending == Max Ack Pending -> blocked"
+    },
+    {
+      "text": "Uses nats consumer report/info to diagnose",
+      "passed": true,
+      "evidence": " echo \"== consumer report ==\" nats consumer report \"$STREAM\"  echo; echo \"== con"
+    },
+    {
+      "text": "Addresses AckWait-driven redelivery",
+      "passed": true,
+      "evidence": "pending|ack floor|redelivered|ack wait|max deliver' || true  echo; e"
+    },
+    {
+      "text": "Gives concrete remediation commands",
+      "passed": true,
+      "evidence": " enough time:**  ```bash nats consumer edit ORDERS order-processor --ack-"
+    }
+  ],
+  "pass_count": 4,
+  "total": 4
+}

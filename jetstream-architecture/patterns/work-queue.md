@@ -12,7 +12,7 @@ Producer ──> Stream (WorkQueue) ──> ├─ Worker B  ──> Pull Consum
 
 Each message is delivered to exactly one worker. Failed messages are retried with backoff up to `MaxDeliver`, after which **the server stops redelivering it to that consumer and publishes an advisory**.
 
-There is no dead-letter queue in NATS. Not in any released server, and not in 2.15-RC: `consumer.go` has no `dead_letter` field and no ADR proposes one. `MaxDeliver` without the advisory-consuming machinery below is not "retry then dead-letter", it is "retry then stop, and nothing tells your application".
+There is no dead-letter queue in NATS. Not in any released server, including 2.15: `consumer.go` has no `dead_letter` field and no ADR proposes one. `MaxDeliver` without the advisory-consuming machinery below is not "retry then dead-letter", it is "retry then stop, and nothing tells your application".
 
 Be precise about what "stops" means, because it determines what you can still do about it. The message is **not** deleted from the stream: it stays subject to the stream's retention policy, which is exactly why the advisory handler below can fetch it back by sequence. What ends is redelivery to that one consumer. On a `WorkQueuePolicy` stream this is worse than it sounds, since the message remains and no other consumer can take it.
 
@@ -45,7 +45,7 @@ consumer, _ := js.AddConsumer("TASKS", &nats.ConsumerConfig{
     AckWait:       30 * time.Second,
     MaxDeliver:    5,
     MaxAckPending: 100,               // per-worker concurrency limit
-    Backoff: []time.Duration{
+    BackOff: []time.Duration{
         5 * time.Second,
         30 * time.Second,
         2 * time.Minute,

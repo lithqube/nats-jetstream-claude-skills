@@ -1,0 +1,23 @@
+{
+  "eval_id": 2,
+  "eval_name": "deployment-k8s-3node-cluster",
+  "skill": "jetstream-deployment",
+  "prompt": "I need to deploy a 3-node NATS JetStream cluster on Kubernetes. We're running production workloads and need file storage that survives pod restarts. Give me the Helm values or manifests and explain the sizing.",
+  "assertions": [
+    {
+      "text": "Declares 3 replicas (StatefulSet or Helm cluster size 3)"
+    },
+    {
+      "text": "JetStream file storage backed by a PersistentVolumeClaim"
+    },
+    {
+      "text": "Pins a specific NATS image tag (not 'latest')"
+    },
+    {
+      "text": "Includes pod anti-affinity to spread across nodes"
+    },
+    {
+      "text": "Provides resource/disk sizing guidance"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "eval_id": 4,
+  "eval_name": "nuxt-nats-publish-and-consume",
+  "skill": "nuxt-nats",
+  "prompt": "I have a Nuxt 4 app using the nuxt-nats module. From a server API route I want to publish an 'order.created' event, and I want a durable background consumer that processes those events. Show me the nuxt.config setup, the publish call, and the consumer.",
+  "assertions": [
+    {
+      "text": "Configures the nats: key in nuxt.config"
+    },
+    {
+      "text": "Publishes with jsPublish/corePublish from a server route"
+    },
+    {
+      "text": "Registers a durable consumer via defineNatsConsumer"
+    },
+    {
+      "text": "Types subjects via the NatsEvents interface"
+    },
+    {
+      "text": "Notes NUXT_NATS_WORKERS must be set for the consumer to run"
+    }
+  ]
+}

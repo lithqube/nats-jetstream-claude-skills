@@ -1,0 +1,77 @@
+# Helm values for a 3-node NATS JetStream cluster with persistent file storage.
+#
+# Official chart (don't hand-roll a StatefulSet — this chart already gives you
+# the clustered StatefulSet, headless service, per-pod PVCs, PodDisruptionBudget,
+# and a reloader sidecar):
+#
+#   helm repo add nats https://nats-io.github.io/k8s/helm/charts/
+#   helm repo update
+#   helm upgrade --install nats nats/nats -n nats --create-namespace -f values.yaml
+#
+# Tested against the `nats` chart v1.x (NATS server 2.10+). Pin the versions you
+# deploy: --version <chartVersion>, and set config.image.tag below.
+
+config:
+  # 3 replicas => RAFT quorum of 2, tolerates 1 node/pod down. This is the
+  # minimum real HA size; use 5 only if you must survive 2 simultaneous losses.
+  cluster:
+    enabled: true
+    replicas: 3
+
+  jetstream:
+    enabled: true
+
+    # Durable file storage. The chart renders this as a volumeClaimTemplate on
+    # the StatefulSet, so each pod (nats-0/1/2) keeps its OWN PVC across restarts,
+    # reschedules, and rolling upgrades — this is what survives pod restarts.
+    fileStore:
+      enabled: true
+      dir: /data
+      pvc:
+        enabled: true
+        size: 50Gi
+        # Use a real SSD/block class with ReadWriteOnce. Set to your cluster's
+        # class (gp3 on EKS, pd-ssd/premium-rwo on GKE, managed-csi on AKS).
+        # Leave unset to use the cluster default StorageClass.
+        storageClassName: ""   # e.g. "gp3"
+
+    # In-memory streams are optional and are LOST on restart — keep small and
+    # never use memory storage for data you need to survive a pod restart.
+    memoryStore:
+      enabled: true
+      maxSize: 2Gi
+
+# Resources per pod. JetStream wants headroom: RAM for the message/ack cache and
+# RAFT, CPU for fan-out and replication. These are sane production starting points
+# for moderate throughput — raise after watching real usage.
+container:
+  merge:
+    resources:
+      requests:
+        cpu: "2"
+        memory: 4Gi
+      limits:
+        # No CPU limit on purpose (avoids CFS throttling under burst); cap memory.
+        memory: 8Gi
+
+# Spread the 3 pods across nodes/zones so one node or AZ failure drops at most one
+# RAFT member. The chart already sets podAntiAffinity + a PodDisruptionBudget;
+# this adds zone spreading.
+podTemplate:
+  topologySpreadConstraints:
+    kubernetes.io/hostname:
+      maxSkew: 1
+      whenUnsatisfiable: DoNotSchedule
+    topology.kubernetes.io/zone:
+      maxSkew: 1
+      whenUnsatisfiable: ScheduleAnyway
+
+# Pin the server image for reproducible prod deploys.
+# config:
+#   image:
+#     tag: "2.10.22-alpine"
+
+# Monitoring endpoint (/healthz, /varz) on :8222 — the chart wires readiness/
+# liveness probes to it. Enable the Prometheus exporter if you scrape metrics.
+promExporter:
+  enabled: false   # set true if you run Prometheus; adds the nats-exporter sidecar

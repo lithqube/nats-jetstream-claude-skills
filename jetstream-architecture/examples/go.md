@@ -125,7 +125,7 @@ func pullConsumer(js nats.JetStreamContext) {
         MaxDeliver:    5,
         MaxAckPending: 1000,
         FilterSubject: "orders.>",
-        Backoff: []time.Duration{
+        BackOff: []time.Duration{
             2 * time.Second,
             10 * time.Second,
             60 * time.Second,

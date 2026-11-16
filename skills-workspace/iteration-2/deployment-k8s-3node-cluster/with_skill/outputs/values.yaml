@@ -1,0 +1,128 @@
+# NATS JetStream — 3-node production cluster (Helm values)
+# Chart: nats/nats  (helm repo add nats https://nats-io.github.io/k8s/helm/charts/)
+# Install:
+#   helm install nats nats/nats -f values.yaml -n nats-system --create-namespace
+#
+# Goal: 3-node clustered JetStream with FILE storage that survives pod restarts.
+# File storage survival comes from fileStore -> a per-pod PVC (StatefulSet
+# volumeClaimTemplate). PVCs are retained across pod restart, reschedule, and
+# rolling update, so JetStream data is re-read from the same volume on boot.
+
+nats:
+  image:
+    tag: "2.14.6"          # pinned — never :latest; 2.14 is a supported line
+    pullPolicy: IfNotPresent
+
+  jetstream:
+    enabled: true
+
+    # Memory store is for R-mem streams only. File-backed streams do NOT use
+    # this; keep it small. The durable data lives in fileStore below.
+    memoryStore:
+      enabled: true
+      size: 2Gi            # ~25% of pod memory; headroom left for OS/conns
+
+    # THIS is what survives pod restarts: a PersistentVolume per pod.
+    fileStore:
+      enabled: true
+      size: 100Gi          # ~80% usable after headroom (see response.md sizing)
+      storageClassName: gp3-encrypted   # must be RWO, SSD/NVMe, expandable
+
+  limits:
+    maxConnections: 64000
+    maxPayload: 8MB
+    maxPending: 64MB
+
+  # Medium tier (10k–100k msg/s). Scale per response.md if your load differs.
+  resources:
+    requests:
+      cpu: "2"
+      memory: 8Gi
+    limits:
+      cpu: "4"
+      memory: 16Gi
+
+  logging:
+    debug: false
+    trace: false
+    logtime: true
+
+cluster:
+  enabled: true
+  replicas: 3              # odd number -> Raft quorum for leader election
+  noAdvertise: false
+
+# Spread the 3 pods onto 3 different nodes (and zones if available) so a single
+# node/zone failure never takes out quorum.
+podTemplate:
+  topologySpreadConstraints:
+    kubernetes.io/hostname:
+      maxSkew: 1
+      whenUnsatisfiable: DoNotSchedule
+    topology.kubernetes.io/zone:
+      maxSkew: 1
+      whenUnsatisfiable: ScheduleAnyway   # soft: works on single-zone clusters too
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: nats
+        topologyKey: kubernetes.io/hostname
+
+# JetStream recovery after restart can take a while on large stores; give the
+# pod time to come ready before the liveness probe starts killing it.
+readinessProbe:
+  httpGet:
+    path: /healthz?js-enabled-only=true
+    port: 8222
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8222
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: 8222
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  failureThreshold: 90     # ~7.5 min allowed for store recovery on boot
+
+natsBox:
+  enabled: true            # nats CLI pod for `nats account info`, stream ops
+
+promExporter:
+  enabled: true
+  port: 7777
+
+# Never let voluntary disruptions (drains/upgrades) remove more than one pod;
+# the other two keep quorum.
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+# --- StorageClass the fileStore PVCs bind to -----------------------------------
+# Not created by the chart. Apply this (or point storageClassName above at an
+# existing SSD class). allowVolumeExpansion lets you grow fileStore.size later
+# without recreating the cluster.
+#
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: gp3-encrypted
+# provisioner: ebs.csi.aws.com        # swap for your cloud's CSI driver
+# parameters:
+#   type: gp3
+#   encrypted: "true"
+# allowVolumeExpansion: true
+# volumeBindingMode: WaitForFirstConsumer
+# reclaimPolicy: Retain                # keep the volume if a PVC is ever deleted
