@@ -14,7 +14,7 @@ Design JetStream streams, subjects, and consumers. Covers:
 - Consumer design (pull vs push, ack policies, deliver policies, backoff)
 - Subject namespace design: wildcards, the `>` vs `*` capture pitfall, and subject-as-contract conventions (verb tense, no topology/version in subjects)
 - Messaging patterns: fanout, work queues, priority queues, and dead-letter handling via advisory capture — NATS has **no** built-in DLQ (`MaxDeliver` is retry-then-stop)
-- Server feature-gating by `api.level` and the version support policy (per-message TTL, priority groups, atomic batches, message scheduling, 2.12 strict mode)
+- Server feature-gating by `api.level` and the version support policy (per-message TTL, priority groups, atomic batches, message scheduling, 2.12 strict mode) — current through **NATS 2.15** (`api.level` 5), including its new default **1000-consumers-per-stream** limit
 - Code examples in **Go** (`nats.go`), **JavaScript/TypeScript** (modular `@nats-io/*` v3), and **Python** (`nats-py`) with error handling
 - Idempotent publishing and the honest exactly-once: at-least-once delivery + an inbox/dedup table
 
@@ -40,6 +40,7 @@ Troubleshoot, monitor, and tune JetStream. Covers:
 - JetStream advisory subjects for real-time operational events
 - nats CLI reference with common diagnostic workflows
 - Cluster health checks and leader election troubleshooting
+- 2.15 maintenance & disaster recovery: node/peer evacuation, cancel-move, meta-group quorum rescue (`META.RESCUE`), and backup/restore V2
 
 ### nats-agent-fabric
 
@@ -143,7 +144,7 @@ nuxt-nats/
 
 Each skill is benchmarked with the skill-creator eval loop: realistic test prompts run **with the skill vs. a no-skill baseline**, graded against objective assertions. Prompts live in `evals/evals.json` (and per-skill `*/evals/evals.json`); graded runs, timing, and `benchmark.json`/`benchmark.md` land in the matching `*-workspace/` directory.
 
-Recent results (with skill → baseline pass rate): `nats-agent-fabric` 100% → 43%, `nuxt-nats` 100% → 30% — baselines typically reach for the legacy `nats` package or hand-roll the raw client and miss the module/protocol specifics the skills encode.
+The shared harness (`evals/evals.json`, `skills-workspace/iteration-2/`) runs 7 prompts across all five skills, including trap cases for version/feature-gating and the no-native-DLQ truth: **with-skill 100% vs. no-skill baseline 85.7%**. The lift is concentrated where the base model can't guess — `nuxt-nats` (5/5 vs 1/5, the module's own API) and the DLQ case (5/5 vs 4/5, baseline missed the `MAX_DELIVERIES` advisory). Earlier per-skill runs: `nats-agent-fabric` 100% → 43%, `nuxt-nats` 100% → 30%. (The eval runs also caught a real bug — a `Backoff`/`BackOff` field typo in the Go examples that would not compile — since fixed.)
 
 ## License
 
