@@ -13,7 +13,7 @@ This is **agent-to-agent coordination, not MCP** — MCP standardizes tools/cont
 
 ## Maturity note (read before quoting versions)
 
-The protocol spec is **v0.3** and the 0.x line is explicitly unstable. Package versions as of mid-2026: npm `@synadia-ai/agents` and `@synadia-ai/agent-service` at **0.5.2**; PyPI `synadia-ai-agents` (~0.6) and `synadia-ai-agent-service` **0.4.1**. **Go SDK is planned, not released** — for Go today, implement the wire protocol directly over `nats.go` micro (see `examples/protocol-go.md`).
+The protocol spec is **v0.3** and the 0.x line is explicitly unstable. Package versions as of mid-2026: npm `@synadia-ai/agents` and `@synadia-ai/agent-service` at **0.6.0**; PyPI `synadia-ai-agents` (~0.6) and `synadia-ai-agent-service` **0.4.1**. **Go SDK is planned, not released** — for Go today, implement the wire protocol directly over `nats.go` micro (see `examples/protocol-go.md`).
 
 Because SDK APIs may drift inside 0.x, teach the **protocol** (stable) and treat exact constructor/method names as current-but-verify. When generating code, tell the user to confirm the installed package version. The wire protocol is the durable contract that all SDKs and hand-rolled agents must honor.
 
@@ -24,7 +24,7 @@ This skill is built on the NATS **Services API (micro)**, *not* core JetStream �
 - Designing the underlying streams/KV buckets that back durable agent memory → also read `jetstream-architecture`.
 - Deploying the NATS servers/accounts your agents connect to → `jetstream-deployment`.
 - Monitoring, troubleshooting, or tuning the running fabric → `jetstream-operations`.
-- Building the agent inside a **Nuxt / Nitro** app → the `nuxt-nats` skill wraps this SDK with `defineNatsAgent` / `useAgents` (a real reference implementation of a protocol-compliant TS host, incl. `response.ask` for human-in-the-loop).
+- Building the agent inside a **Nuxt / Nitro** app → the `nuxt-nats` skill (in the [nuxt-nats repo](https://github.com/lithqube/nuxt-nats/tree/main/skills/nuxt-nats)) wraps this SDK with `defineNatsAgent` / `useAgents` (a real reference implementation of a protocol-compliant TS host, incl. `response.ask` for human-in-the-loop).
 
 ## Reference Files
 

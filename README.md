@@ -54,19 +54,15 @@ Build AI agents that discover and prompt each other over NATS using the **Synadi
 
 > Built on the NATS Services API (micro), not core JetStream — JetStream/KV are the optional durable-state layer behind the fabric. Cross-referenced from all three JetStream skills.
 
-### nuxt-nats
+### nuxt-nats (moved)
 
-Use the **`nuxt-nats` Nuxt 4 / Nitro module** to talk to NATS JetStream from a Nuxt app. Covers:
+The skill for the **`nuxt-nats` Nuxt 4 / Nitro module** now lives with the module, so it is versioned with the API it describes and checked against the source in CI: [`skills/nuxt-nats`](https://github.com/lithqube/nuxt-nats/tree/main/skills/nuxt-nats). Install it with:
 
-- Module configuration (`nats:` key), env-var overrides, and the auth priority chain (JWT+NKey → JWT → NKey → token → user/pass)
-- Publishing with `jsPublish` (typed via `NatsEvents`, `msgId` dedup, retry) and `corePublish`
-- Durable pull consumers with `defineNatsConsumer`, the `NUXT_NATS_WORKERS` worker gate, and ack/nak/term discipline
-- Dead-letter handling with `defineDeadLetterConsumer` (advisory capture — NATS has no built-in DLQ) and SSE via `useEphemeralConsumer`
-- KV / Object Store (`useKV` / `useObj`) with the real unit/stream gotchas
-- Agent fabric (`defineNatsAgent` / `useAgents`) on the Synadia Agent Protocol
-- Production gotchas: the SSR/Nitro lifecycle race, reconnect-storm status semantics, Nitro externals, provisioning races, and Testcontainers testing
+```bash
+npx giget@latest gh:lithqube/nuxt-nats/skills/nuxt-nats .claude/skills/nuxt-nats
+```
 
-> Distilled from lithqube's `nuxt-nats` module and two production deployments. Uses the modular `@nats-io/*` v3 client throughout.
+The earlier copy here taught several signatures that did not match the module (for example `handler(data, msg)`, and that a returning handler acks), so it was removed rather than updated.
 
 ## Installation
 
@@ -79,7 +75,6 @@ cp -r jetstream-architecture .claude/skills/
 cp -r jetstream-deployment .claude/skills/
 cp -r jetstream-operations .claude/skills/
 cp -r nats-agent-fabric .claude/skills/
-cp -r nuxt-nats .claude/skills/
 ```
 
 ## File Structure
@@ -128,22 +123,13 @@ nats-agent-fabric/
     python.md           # synadia-ai-agents + synadia-ai-agent-service
     protocol-go.md      # Protocol-compliant agent in Go over nats.go micro
 
-nuxt-nats/
-  SKILL.md              # Module overview, config quickstart, workflow, principles
-  references/
-    configuration.md    # nats: options, env vars, auth chain, provisioning stance
-    publishing.md       # jsPublish/corePublish, typed NatsEvents, msgId dedup, outbox
-    consumers.md        # defineNatsConsumer, worker gate, DLQ, ephemeral (SSE)
-    kv-object.md        # useKV/useObj + unit and ReadableStream gotchas
-    agents.md           # defineNatsAgent/useAgents on the Synadia Agent Protocol
-    gotchas.md          # SSR lifecycle race, reconnect storm, externals, testing
 ```
 
 ## Evaluations
 
 Each skill is benchmarked with the skill-creator eval loop: realistic test prompts run **with the skill vs. a no-skill baseline**, graded against objective assertions. Prompts live in `evals/evals.json` (and per-skill `*/evals/evals.json`); graded runs, timing, and `benchmark.json`/`benchmark.md` land in the matching `*-workspace/` directory.
 
-Recent results (with skill → baseline pass rate): `nats-agent-fabric` 100% → 43%, `nuxt-nats` 100% → 30% — baselines typically reach for the legacy `nats` package or hand-roll the raw client and miss the module/protocol specifics the skills encode.
+Recent results (with skill → baseline pass rate): `nats-agent-fabric` 100% → 43% — baselines typically reach for the legacy `nats` package or hand-roll the raw client and miss the module/protocol specifics the skills encode.
 
 ## License
 

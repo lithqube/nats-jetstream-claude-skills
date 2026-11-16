@@ -1,6 +1,6 @@
 # TypeScript / Node / Bun Examples
 
-Using `@synadia-ai/agents` (caller) and `@synadia-ai/agent-service` (host). Reference implementation; most mature SDK (npm ~0.5.2). Requires Node ≥20 or Bun ≥1.2 and a reachable NATS server.
+Using `@synadia-ai/agents` (caller) and `@synadia-ai/agent-service` (host). Reference implementation; most mature SDK (npm 0.6.0). Requires Node ≥20 or Bun ≥1.2 and a reachable NATS server.
 
 > APIs are 0.x and may drift — verify the installed version. The **wire protocol** (`concepts/protocol.md`) is the stable contract; if a method name here differs from the installed package, honor the protocol and adjust the call.
 
